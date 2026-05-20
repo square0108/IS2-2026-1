@@ -1,0 +1,1 @@
+# Aquí utilizar SQLalchemy para definir ORM de la base de datos?
