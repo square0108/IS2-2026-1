@@ -29,3 +29,35 @@ IS2-2026-1/
 ├── requirements.txt            # Lista de dependencias
 └── run.py                      # Script principal para arrancar el servidor local
 ```
+# Ejecución de aplicación Flask
+
+#### 1. **CREAR ENTORNO VIRTUAL**
+```
+python -m venv <nombre de carpeta, e.j. '.venv'>
+```
+#### 2. Activar entorno virtual
+En command line de Windows:
+```
+.venv\Scripts\activate
+```
+Bash:
+```
+source venv/bin/activate
+```
+#### 3. Instalar dependencias (revisar que pip esté actualizado)
+```
+pip install -r requirements.txt
+```
+#### 4. Iniciar aplicación de Flask
+```
+flask run --debug
+```
+#### 5. Salida del entorno virtual
+Windows:
+```
+.venv\Scripts\deactivate
+```
+Bash:
+```
+deactivate
+```
