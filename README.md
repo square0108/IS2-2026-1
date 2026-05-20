@@ -2,6 +2,7 @@
 Proyecto semestral del curso Ingeniería de Software II
 
 # Estructura
+```text
 IS2-2026-1/
 │
 ├── app/                        # Paquete principal de la aplicación Flask
@@ -27,3 +28,4 @@ IS2-2026-1/
 ├── README.md                   
 ├── requirements.txt            # Lista de dependencias
 └── run.py                      # Script principal para arrancar el servidor local
+```
