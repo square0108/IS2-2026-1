@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Incidente{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            <h1 class="mb-4">
+                Editar incidente
+            </h1>
+
+            <form>
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Fecha
+                    </label>
+
+                    <input
+                    type="text"
+                    class="form-control"
+                    value="{{ incident.date }}"
+                    disabled>
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Descripción del incidente
+                    </label>
+
+                    <textarea
+                    class="form-control"
+                    rows="4">{{ incident.incident }}</textarea>
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Estado
+                    </label>
+
+                    <select class="form-select">
+
+                        <option
+                        {% if incident.status == "Abierto" %}
+                        selected
+                        {% endif %}>
+                            Abierto
+                        </option>
+
+                        <option
+                        {% if incident.status == "En proceso" %}
+                        selected
+                        {% endif %}>
+                            En proceso
+                        </option>
+
+                        <option
+                        {% if incident.status == "Finalizado" %}
+                        selected
+                        {% endif %}>
+                            Finalizado
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <button
+                type="submit"
+                class="btn btn-success">
+
+                    Guardar cambios
+
+                </button>
+
+                <a
+                href="/incidents"
+                class="btn btn-secondary">
+
+                    Volver
+
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

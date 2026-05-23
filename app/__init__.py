@@ -26,6 +26,9 @@ def create_app(test_config=None):
     # Para cada ruta de cada tipo de usuario será necesario registrar un blueprint
     from app.auth.routes import auth
     app.register_blueprint(auth)
+
+    from app.auth.incidents.routes import incidents
+    app.register_blueprint(incidents)
     
     # a simple page that says hello
     @app.route('/hello')

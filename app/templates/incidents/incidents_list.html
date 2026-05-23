@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Historial de Incidentes{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            <h1 class="mb-3">
+                Historial de incidentes
+            </h1>
+
+            <h5 class="text-muted mb-4">
+                Profesor: {{ teacher_name }}
+            </h5>
+
+            <table class="table table-hover align-middle">
+
+                <thead class="table-dark">
+
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Incidente</th>
+                        <th>Estado</th>
+                        <th>Editar</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for incident in incidents %}
+
+                    <tr>
+
+                        <td>
+                            {{ incident.date }}
+                        </td>
+
+                        <td>
+                            {{ incident.incident }}
+                        </td>
+
+                        <td>
+
+                            {% if incident.status == "Abierto" %}
+
+                                <span class="badge bg-danger">
+                                    Abierto
+                                </span>
+
+                            {% elif incident.status == "En proceso" %}
+
+                                <span class="badge bg-warning text-dark">
+                                    En proceso
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-success">
+                                    Finalizado
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            <a
+                            href="/incidents/{{ incident.id }}/edit"
+                            class="btn btn-primary btn-sm">
+
+                                Editar
+
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
