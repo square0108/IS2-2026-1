@@ -1,1 +1,76 @@
-# Aquí utilizar SQLalchemy para definir ORM de la base de datos?
+from datetime import datetime
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
+
+class EvidenciaCaso(db.Model):
+    __tablename__ = 'caso_evidencia'
+    caso_id = db.Column(db.Integer, db.ForeignKey('casos.id', ondelete="CASCADE"), primary_key=True)
+    antecedente_id = db.Column(db.Integer, db.ForeignKey('antecedentes.id', ondelete="CASCADE"), primary_key=True)
+    fecha_vinculacion = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+class Usuario(db.Model):
+    __tablename__ = 'usuarios'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    nombre_completo = db.Column(db.String(100), nullable=False)
+    
+    es_reportador = db.Column(db.Boolean, default=False, nullable=False)
+    es_encargado = db.Column(db.Boolean, default=False, nullable=False)
+    es_orientador = db.Column(db.Boolean, default=False, nullable=False)
+    
+    antecedentes_creados = db.relationship('Antecedente', backref='creador', lazy=True)
+
+class Curso(db.Model):
+    __tablename__ = 'cursos'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(50), unique=True, nullable=False)
+    estudiantes = db.relationship('Estudiante', backref='curso', lazy=True)
+
+class Estudiante(db.Model):
+    __tablename__ = 'estudiantes'
+    id = db.Column(db.Integer, primary_key=True)
+    rut = db.Column(db.String(12), unique=True, nullable=False)
+    nombre_completo = db.Column(db.String(100), nullable=False)
+    curso_id = db.Column(db.Integer, db.ForeignKey('cursos.id'), nullable=False)
+    antecedentes = db.relationship('Antecedente', backref='estudiante', lazy=True)
+
+class Antecedente(db.Model):
+    __tablename__ = 'antecedentes'
+    id = db.Column(db.Integer, primary_key=True)
+    fecha_adicion = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    descripcion = db.Column(db.Text, nullable=False)
+    tipo_antecedente = db.Column(db.String(30), nullable=False)
+    
+    estudiante_id = db.Column(db.Integer, db.ForeignKey('estudiantes.id'), nullable=False)
+    creador_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    
+    __mapper_args__ = {
+        'polymorphic_on': tipo_antecedente,
+        'polymorphic_identity': 'ANTECEDENTE'
+    }
+
+class Incidente(Antecedente):
+    respuesta_inmediata = db.Column(db.Text, nullable=True)
+    __mapper_args__ = {'polymorphic_identity': 'INCIDENTE'}
+
+class Diagnostico(Antecedente):
+    __mapper_args__ = {'polymorphic_identity': 'DIAGNOSTICO'}
+
+class Observacion(Antecedente):
+    __mapper_args__ = {'polymorphic_identity': 'OBSERVACION'}
+
+class Caso(db.Model):
+    __tablename__ = 'casos'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(150), nullable=False, default="Caso de Investigación")
+    estado = db.Column(db.String(30), nullable=False, default='ABIERTO')
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    fecha_limite = db.Column(db.DateTime, nullable=True)
+    
+    evidencias = db.relationship(
+        'Antecedente',
+        secondary='caso_evidencia',
+        backref=db.backref('casos_asociados', lazy=True),
+        lazy=True
+    )
