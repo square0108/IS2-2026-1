@@ -48,11 +48,16 @@ source venv/bin/activate
 ```
 pip install -r requirements.txt
 ```
-#### 4. Iniciar aplicación de Flask
+#### 4. Población de base de datos para testing
+En caso de ser necesario, ejecutar el script de población con datos dummy.
+```
+python scripts/seed_db.py
+```
+#### 5. Iniciar aplicación de Flask
 ```
 flask run --debug
 ```
-#### 5. Salida del entorno virtual
+#### 6. Salida del entorno virtual
 Windows:
 ```
 .venv\Scripts\deactivate
