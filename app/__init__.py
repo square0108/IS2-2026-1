@@ -5,6 +5,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy # usar para cargar DB
 from app.db_model import db
 
+
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
@@ -38,6 +39,11 @@ def create_app(test_config=None):
 
     from app.temp.routes import temp    # rutas de prueba
     app.register_blueprint(temp)
+    from app.users.reportador.routes import reportador
+    app.register_blueprint(reportador, url_prefix='/reportador')
+
+    from app.students.routes import students
+    app.register_blueprint(students)
     
     # a simple page that says hello
     @app.route('/hello')
