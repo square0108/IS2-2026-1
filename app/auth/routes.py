@@ -18,4 +18,4 @@ def signin():
             return redirect(url_for('auth.signin'))
 
     # else if request == GET
-    return render_template('signin.html')
+    return render_template('auth/signin.html')
