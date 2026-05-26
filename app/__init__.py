@@ -28,6 +28,9 @@ def create_app(test_config=None):
     from app.auth.routes import auth
     app.register_blueprint(auth)
 
+    from app.users.reportador.routes import reportador
+    app.register_blueprint(reportador, url_prefix='/reportador')
+
     from app.students.routes import students
     app.register_blueprint(students)
     

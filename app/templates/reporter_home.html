@@ -1,0 +1,26 @@
+{% extends "base.html"%}
+
+{%block title%} Inicio {%endblock%}
+
+{%block content%}
+<div class="container">
+  <div class="row g-3 my-4">
+        <div class="col-sm-6">
+            <a href="{{url_for('reportador.nuevoReporte')}}" class="btn btn-primary btn-lg w-100 py-4 fs-5 fw-semibold shadow-sm d-flex flex-column align-items-center justify-content-center">
+                Registrar nuevo incidente
+            </a>
+        </div>
+        <div class="col-sm-6">
+            <a href="#" class="btn btn-outline-secondary btn-lg w-100 py-4 fs-5 fw-semibold shadow-sm d-flex flex-column align-items-center justify-content-center">
+                Ver mis reportes
+            </a>
+        </div>
+    </div>
+
+  <div class="my-3 p-3 bg-body rounded shadow-sm border">
+    <h6 class="border-bottom pb-2 mb-0 fw-bold text-secondary">Actualizaciones recientes (Mis reportes)</h6>
+    <small>No hay actualizaciones recientes</small>
+  </div>
+</div>
+
+{%endblock%}
