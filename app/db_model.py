@@ -13,6 +13,7 @@ class Usuario(db.Model):
     __tablename__ = 'usuarios'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
+    password = db.Column(db.String(50), nullable=False) # hashear esto mas tarde jejeje
     nombre_completo = db.Column(db.String(100), nullable=False)
     
     es_reportador = db.Column(db.Boolean, default=False, nullable=False)
