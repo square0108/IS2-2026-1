@@ -1,24 +1,38 @@
 <!--BARRA SUPERIOR-->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-          <ul class="navbar-nav mr-auto">
-            <!--Quiza cambiar el href de esto mas adelante-->
-            <a class="navbar-brand">escuelita "name" </a>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
 
-            <li class="nav-item active">
-              <!-- TODO: Cambiar este href para que traiga al usuario a su home (depende de si es reportador/coordinador/orientador) -->
-              <a class="nav-link" href="#">Inicio</a>
-            </li>
+    <ul class="navbar-nav mr-auto">
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
-                aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-          </ul>
-            <a href="{{url_for('auth.signout')}}" class="form-inline my-2 my-lg-0" id='signoutForm'>
-              <button class="btn btn-danger my-2 my-sm-0" type="button">Cerrar sesión</button>
-            </a>
-          
-        </div>
-    </nav>
+      <a class="navbar-brand">escuelita "name" </a>
+
+      <!-- Botón Inicio redirige cada tipo de usuario a su dashboard específico, pues tienen privilegios distintos -->
+      <li class="nav-item active">
+        {% if session.get('user_type') == 'reportador' %}
+        <a class="nav-link" href="{{ url_for('reportador.home') }}">Inicio</a>
+        
+        {% elif session.get('user_type') == 'coordinador' %}
+        <a class="nav-link" href="{{ url_for('encargado_de_convivencia.home') }}">Inicio</a>
+            
+        {% elif session.get('user_type') == 'orientador' %}
+        <a class="nav-link" href="{{ url_for('orientador.home') }}">Inicio</a>
+            
+        {% else %} <!-- no se jeje -->
+        <a class="nav-link" href="{{ url_for('auth.signin') }}">Inicio</a>
+        {% endif %}
+      </li>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+      </button>
+
+    </ul>
+
+    <a href="{{url_for('auth.signout')}}" class="form-inline my-2 my-lg-0" id='signoutForm'>
+      <button class="btn btn-danger my-2 my-sm-0" type="button">Cerrar sesión</button>
+    </a>
+    
+  </div>
+</nav>
