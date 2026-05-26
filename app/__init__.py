@@ -3,6 +3,7 @@ import os
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy # usar para cargar DB
+from app.db_model import db
 
 
 def create_app(test_config=None):
@@ -10,8 +11,10 @@ def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
 
     app.config.from_mapping(
-        # SECRET_KEY='dev',
+        SECRET_KEY='dev',
         # DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
+        SQLALCHEMY_DATABASE_URI='sqlite:///' + os.path.join(app.instance_path, 'flaskr.sqlite'),
+        SQLALCHEMY_TRACK_MODIFICATIONS=False
     )
 
     if test_config is None:
@@ -24,10 +27,18 @@ def create_app(test_config=None):
     # ensure the instance folder exists
     os.makedirs(app.instance_path, exist_ok=True)
 
+    # Inicializamos la base de datos con la app
+    db.init_app(app)
+    # Creamos las tablas si no existen
+    with app.app_context():
+        db.create_all()
+
     # Para cada ruta de cada tipo de usuario será necesario registrar un blueprint
     from app.auth.routes import auth
     app.register_blueprint(auth)
 
+    from app.temp.routes import temp    # rutas de prueba
+    app.register_blueprint(temp)
     from app.users.reportador.routes import reportador
     app.register_blueprint(reportador, url_prefix='/reportador')
 
