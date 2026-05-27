@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session, redirect
 from app.auth.login_required import login_required
+from app.queries import listar_consultas, ejecutar_consulta
 
 reportador = Blueprint('reportador', __name__)
 from app.db_model import Estudiante, Curso

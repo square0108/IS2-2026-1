@@ -14,9 +14,12 @@ with app.app_context():
     db.create_all()
 
     # usuarios
-    u1 = Usuario(username="luis.profesor", password="123", nombre_completo="Luis Profesor", es_reportador=True)
-    u2 = Usuario(username="ana.directora", password="123", nombre_completo="Ana Directora", es_encargado=True)
-    
+    u1 = Usuario(username="luis.profesor", nombre_completo="Luis Profesor", es_reportador=True)
+    u1.set_password("123")  # Establecer contraseña hasheada
+
+    u2 = Usuario(username="ana.directora", nombre_completo="Ana Directora", es_encargado=True)
+    u2.set_password("1234")  # Establecer contraseña hasheada
+
     # cursos
     c1 = Curso(nombre="1 Medio A")
     c2 = Curso(nombre="2 Medio B")
