@@ -33,6 +33,7 @@ with app.app_context():
     incidente_prueba = Incidente(
         descripcion="Juan Pérez y Pedro Gómez se vieron involucrados en una discusión fuerte en el patio escolar.",
         respuesta_inmediata="Se separó a los estudiantes y se les indicó que asistieran a Inspectoría.",
+        categoria="Verbal",
         estudiantes=[e1, e2],
         creador=u1
     )

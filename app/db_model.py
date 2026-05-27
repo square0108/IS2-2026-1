@@ -73,6 +73,7 @@ class Antecedente(db.Model):
 
 class Incidente(Antecedente):
     respuesta_inmediata = db.Column(db.Text, nullable=True)
+    categoria = db.Column(db.Text, nullable=True)
     __mapper_args__ = {'polymorphic_identity': 'INCIDENTE'}
 
 class Diagnostico(Antecedente):
