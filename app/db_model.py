@@ -1,5 +1,6 @@
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
@@ -13,14 +14,21 @@ class Usuario(db.Model):
     __tablename__ = 'usuarios'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
-    password = db.Column(db.String(50), nullable=False) # hashear esto mas tarde jejeje
+    password = db.Column(db.String(225), nullable=False) # hashear esto mas tarde jejeje
     nombre_completo = db.Column(db.String(100), nullable=False)
-    
+
     es_reportador = db.Column(db.Boolean, default=False, nullable=False)
     es_encargado = db.Column(db.Boolean, default=False, nullable=False)
     es_orientador = db.Column(db.Boolean, default=False, nullable=False)
     
     antecedentes_creados = db.relationship('Antecedente', backref='creador', lazy=True)
+
+    #Hash de contraseña
+    def set_password(self, raw_password):
+        self.password = generate_password_hash(raw_password)
+
+    def check_password(self, raw_password):
+        return check_password_hash(self.password, raw_password)
 
 class Curso(db.Model):
     __tablename__ = 'cursos'

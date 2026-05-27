@@ -13,10 +13,10 @@ def signin():
         form_password = request.form.get("password")
 
         # no se si es bueno hacer queries ORM directo en los endpoints, pero bueno
-        queried_user = Usuario.query.filter_by(username=form_username, password=form_password).first()
+        queried_user = Usuario.query.filter_by(username=form_username).first()
         print(queried_user)
 
-        if queried_user: # cambiar esto a un mejor check de null?
+        if queried_user and queried_user.check_password(form_password): # cambiar esto a un mejor check de null?
             # Store essential user data in the session cookie
             session["user_id"] = queried_user.id
             session["user_name"] = queried_user.nombre_completo
