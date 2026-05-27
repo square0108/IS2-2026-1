@@ -31,9 +31,9 @@ with app.app_context():
 
     # incidente
     incidente_prueba = Incidente(
-        descripcion="Juan Pérez fue visto tirando papeles en clase.",
-        respuesta_inmediata="Se indicó al alumno que fuera a Inspectoría.",
-        estudiante=e1,
+        descripcion="Juan Pérez y Pedro Gómez se vieron involucrados en una discusión fuerte en el patio escolar.",
+        respuesta_inmediata="Se separó a los estudiantes y se les indicó que asistieran a Inspectoría.",
+        estudiantes=[e1, e2],
         creador=u1
     )
 
