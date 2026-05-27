@@ -42,7 +42,12 @@ class Estudiante(db.Model):
     rut = db.Column(db.String(12), unique=True, nullable=False)
     nombre_completo = db.Column(db.String(100), nullable=False)
     curso_id = db.Column(db.Integer, db.ForeignKey('cursos.id'), nullable=False)
-    antecedentes = db.relationship('Antecedente', backref='estudiante', lazy=True)
+
+estudiante_antecedente = db.Table(
+    'estudiante_antecedente',
+    db.Column('estudiante_id', db.Integer, db.ForeignKey('estudiantes.id', ondelete="CASCADE"), primary_key=True),
+    db.Column('antecedente_id', db.Integer, db.ForeignKey('antecedentes.id', ondelete="CASCADE"), primary_key=True)
+)
 
 class Antecedente(db.Model):
     __tablename__ = 'antecedentes'
@@ -51,9 +56,16 @@ class Antecedente(db.Model):
     descripcion = db.Column(db.Text, nullable=False)
     tipo_antecedente = db.Column(db.String(30), nullable=False)
     
-    estudiante_id = db.Column(db.Integer, db.ForeignKey('estudiantes.id'), nullable=False)
     creador_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     
+    # relación muchos a muchos
+    estudiantes = db.relationship(
+        'Estudiante',
+        secondary=estudiante_antecedente,
+        backref=db.backref('antecedentes', lazy=True),
+        lazy=True
+    )
+
     __mapper_args__ = {
         'polymorphic_on': tipo_antecedente,
         'polymorphic_identity': 'ANTECEDENTE'
@@ -61,9 +73,11 @@ class Antecedente(db.Model):
 
 class Incidente(Antecedente):
     respuesta_inmediata = db.Column(db.Text, nullable=True)
+    categoria = db.Column(db.Text, nullable=True)
     __mapper_args__ = {'polymorphic_identity': 'INCIDENTE'}
 
 class Diagnostico(Antecedente):
+    # TODO: restricción no modelada: diagnosticos referencian a exactamente un estudiante
     __mapper_args__ = {'polymorphic_identity': 'DIAGNOSTICO'}
 
 class Observacion(Antecedente):
