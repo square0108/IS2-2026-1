@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, session, request, flash, redirect, url_for
 from app.auth.login_required import login_required
-from app.db_model import db, Estudiante, Curso, Incidente
+from app.db_model import db, Estudiante, Curso, Incidente, Caso
 
 manager = Blueprint('encargado_de_convivencia', __name__)
 
@@ -8,6 +8,7 @@ manager = Blueprint('encargado_de_convivencia', __name__)
 @login_required("encargado_de_convivencia")
 def home():
     return render_template('manager_home.html')
+
 
 @manager.route('/reportarIncidente', methods=["GET", "POST"])
 @login_required("encargado_de_convivencia")
@@ -53,3 +54,55 @@ def nuevoReporte():
             print(f"Error al guardar el incidente: {e}") 
 
         return redirect(url_for('encargado_de_convivencia.nuevoReporte'))
+
+
+@manager.route('/nuevoCaso', methods=["GET", "POST"])
+@login_required("encargado_de_convivencia")
+def nuevoCaso():
+    if request.method == "POST":
+        nombre_caso = request.form.get('nombre_caso')
+        
+        if not nombre_caso:
+            flash("El nombre del caso es obligatorio.", "warning")
+            return redirect(url_for('encargado_de_convivencia.nuevoCaso'))
+
+        # Inicializamos el caso. El modelo ya tiene por defecto estado='ABIERTO' y fecha actual
+        nuevo_caso = Caso(
+            nombre=nombre_caso,
+            encargado_id=session.get('user_id')
+        )
+        
+        try:
+            db.session.add(nuevo_caso)
+            db.session.commit()
+            flash(f"El caso '{nombre_caso}' ha sido abierto exitosamente.", "success")
+            # Redirigir a la lista de casos
+            return redirect(url_for('encargado_de_convivencia.misCasos'))
+        except Exception as e:
+            db.session.rollback()
+            flash("Ocurrió un error al intentar crear el caso.", "danger")
+            print(f"Error: {e}")
+            return redirect(url_for('encargado_de_convivencia.nuevoCaso'))
+
+    return render_template('new_case.html')
+
+
+@manager.route('/misCasos', methods=["GET"])
+@login_required("encargado_de_convivencia")
+def misCasos():
+    usuario_actual = session.get('user_id')
+    
+    # Consultamos solo los casos que le pertenecen al encargado actual
+    casos_abiertos = Caso.query.filter_by(
+        estado='ABIERTO', 
+        encargado_id=usuario_actual
+    ).order_by(Caso.fecha_creacion.desc()).all()
+    
+    casos_cerrados = Caso.query.filter(
+        Caso.estado != 'ABIERTO', 
+        Caso.encargado_id == usuario_actual
+    ).order_by(Caso.fecha_creacion.desc()).all()
+
+    return render_template('my_cases.html', 
+                           casos_abiertos=casos_abiertos, 
+                           casos_cerrados=casos_cerrados)

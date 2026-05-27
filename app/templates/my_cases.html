@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %} Mis Casos {% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Gestión de casos</h1>
+        <a href="{{ url_for('encargado_de_convivencia.nuevoCaso') }}" class="btn btn-success">Abrir nuevo caso</a>
+    </div>
+
+    <!-- Pestañas de navegación -->
+    <ul class="nav nav-tabs mb-4" id="casosTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="abiertos-tab" data-bs-toggle="tab" data-bs-target="#abiertos" type="button" role="tab">Casos en curso</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="cerrados-tab" data-bs-toggle="tab" data-bs-target="#cerrados" type="button" role="tab">Casos cerrados</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="casosTabsContent">
+        <!-- Contenido Pestaña Abiertos -->
+        <div class="tab-pane fade show active" id="abiertos" role="tabpanel">
+            {% if casos_abiertos %}
+                <div class="row row-cols-1 row-cols-md-2 g-4">
+                    {% for caso in casos_abiertos %}
+                    <div class="col">
+                        <div class="card shadow-sm h-100 border-primary">
+                            <div class="card-body">
+                                <h5 class="card-title text-primary">{{ caso.nombre }}</h5>
+                                <p class="mb-1"><small class="text-muted">Estado: <span class="badge bg-primary">{{ caso.estado }}</span></small></p>
+                                <p class="mb-3"><small class="text-muted">Apertura: {{ caso.fecha_creacion.strftime('%d-%m-%Y') }}</small></p>
+                                <!-- Este botón apunta a # por ahora, lo actualizaremos en el Paso 4 -->
+                                <a href="#" class="btn btn-outline-primary btn-sm w-100">Gestionar caso</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-light text-center border mt-3">No hay casos en curso actualmente.</div>
+            {% endif %}
+        </div>
+
+        <!-- Contenido Pestaña Cerrados -->
+        <div class="tab-pane fade" id="cerrados" role="tabpanel">
+            {% if casos_cerrados %}
+                <div class="row row-cols-1 row-cols-md-2 g-4">
+                    {% for caso in casos_cerrados %}
+                    <div class="col">
+                        <div class="card shadow-sm h-100 bg-light">
+                            <div class="card-body">
+                                <h5 class="card-title text-muted">{{ caso.nombre }}</h5>
+                                <p class="mb-1"><small class="text-muted">Estado: <span class="badge bg-secondary">{{ caso.estado }}</span></small></p>
+                                <p class="mb-3"><small class="text-muted">Apertura: {{ caso.fecha_creacion.strftime('%d-%m-%Y') }}</small></p>
+                                <!-- Botón en disabled ya que está cerrado, o solo modo lectura -->
+                                <a href="#" class="btn btn-outline-secondary btn-sm w-100">Ver Detalles</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-light text-center border mt-3">No hay casos cerrados o archivados.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
