@@ -1,62 +1,68 @@
-{% extends "base.html"%}
+{% extends "base.html" %}
 
-{%block title%} Buscar Estudiantes {%endblock%}
+{% block title %}Buscar Estudiantes{% endblock %}
 
-{%block content%}
+{% block content %}
 
 <div class="container mt-5">
 
     <h1 class="mb-4">
-
+        Buscar estudiantes
     </h1>
 
     <div class="card p-4 shadow-sm">
 
-        <form>
+        <form method="POST">
 
-            <div class="col-md5 mb-3">
+            <div class="row">
 
-                <input
-                type="text"
-                class="form-control"
-                placeholder="Nombre o apellido">
+                <div class="col-md-5 mb-3">
 
-            </div>
+                    <input
+                    type="text"
+                    name="search"
+                    class="form-control"
+                    placeholder="Nombre o apellido">
 
-            <div class="col-md-4 mb-3">
+                </div>
 
-                <select class="form-select">
+                <div class="col-md-4 mb-3">
 
-                    <option selected>
+                    <select
+                    name="course"
+                    class="form-select">
 
-                        Seleccionar curso
+                        <option value="" selected>
+                            Seleccionar curso
+                        </option>
 
-                    </option>
+                        <option value="1A">
+                            1A
+                        </option>
 
-                    <option>
-                        1A
-                    </option>
+                        <option value="1B">
+                            1B
+                        </option>
 
-                    <option>
-                        1B
-                    </option>
+                        <option value="1C">
+                            1C
+                        </option>
 
-                    <option>
-                        1C
-                    </option>
+                    </select>
 
-                </select>
+                </div>
 
-            </div>
-            <div class="col-md-3 mb-3">
+                <div class="col-md-3 mb-3">
 
-                <button>
+                    <button
+                    type="submit"
+                    class="btn btn-primary w-100">
 
-                    <div class="btn btn-primary w-100">
                         Buscar
-                    </div>
 
-                </button>
+                    </button>
+
+                </div>
 
             </div>
 
@@ -68,33 +74,33 @@
 
         <div class="card-body">
 
-            <table class="table table.hover">
+            <table class="table table-hover">
 
-                <thead>
+                <thead class="table-dark">
 
                     <tr>
 
-                        <th> Nombre</th>
-                        <th> Apellido</th>
-                        <th> Curso</th>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Curso</th>
 
                     </tr>
 
                 </thead>
-                
+
                 <tbody>
 
-                    <tr>
-                        <td>Juan</td>
-                        <td>Pérez</td>
-                        <td>1B</td>
-                    </tr>
+                    {% for student in students %}
 
                     <tr>
-                        <td>maria</td>
-                        <td>gonzáles</td>
-                        <td>1C</td>
+
+                        <td>{{ student.nombre }}</td>
+                        <td>{{ student.apellido }}</td>
+                        <td>{{ student.curso }}</td>
+
                     </tr>
+
+                    {% endfor %}
 
                 </tbody>
 
@@ -106,4 +112,4 @@
 
 </div>
 
-{%endblock%}
+{% endblock %}
