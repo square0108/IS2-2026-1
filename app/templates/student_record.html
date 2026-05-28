@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+
+{% block title %}Expediente Estudiante{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <h1 class="mb-4">
+        Expediente del estudiante
+    </h1>
+
+    <!-- INFORMACIÓN PERSONAL -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <h3 class="mb-4">
+                Información personal
+            </h3>
+
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+
+                    <label class="form-label fw-bold">
+                        Nombre completo
+                    </label>
+
+                    <input
+                    type="text"
+                    class="form-control"
+                    value="{{ student.nombre_completo }}"
+                    disabled>
+
+                </div>
+
+                <div class="col-md-4 mb-3">
+
+                <label class="form-label fw-bold">
+                    RUT
+                </label>
+
+                <input
+                type="text"
+                class="form-control"
+                value="{{ student.rut }}"
+                disabled>
+
+                </div>
+
+                <div class="col-md-3 mb-3">
+
+                    <label class="form-label fw-bold">
+                        Curso
+                    </label>
+
+                    <input
+                    type="text"
+                    class="form-control"
+                    value="{{student.curso.nombre}}"
+                    disabled>
+
+                </div>
+
+            </div>
+
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+
+                    <label class="form-label fw-bold">
+                        Apoderado
+                    </label>
+
+                    <input
+                    type="text"
+                    class="form-control"
+                    value="NO REGISTRADO"  
+                    disabled>
+                    <!-- cambiar value al tener apoderadosL -->
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label class="form-label fw-bold">
+                        Teléfono apoderado
+                    </label>
+
+                    <input
+                    type="text"
+                    class="form-control"
+                    value="NO REGISTRADO"
+                    disabled>
+                    <!-- cambiar value al tener la numeros -->
+
+                </div>
+
+            </div>
+
+            <div class="mb-3">
+
+                <label class="form-label fw-bold">
+                    Registros médicos
+                </label>
+
+                <textarea
+                class="form-control"
+                rows="3"
+                disabled>{{"NO REGISTRADO"}}</textarea>
+                <!-- INCIDENTES -->
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- INCIDENTES -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <h3 class="mb-4">
+                Incidentes relacionados
+            </h3>
+
+            {% if incidents %}
+
+            <table class="table table-hover align-middle">
+
+                <thead class="table-dark">
+
+                    <tr>
+
+                        <th>Fecha</th>
+                        <th>Incidente</th>
+                        <th>Estado</th>
+                        <th>Ver</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                {% for incident in incidents %}
+
+                <tr>
+
+                    <td>
+                        {{ incident.fecha_adicion.strftime('%d/%m/%Y') }}
+                    </td>
+
+                    <td>
+                        {{ incident.descripcion }}
+                    </td>
+
+                    <td>
+
+                        <span class="badge bg-primary">
+
+                            {{ incident.categoria }}
+
+                        </span>
+
+                    </td>
+
+                    <td>
+
+                        <a
+                        href="#"
+                        class="btn btn-primary btn-sm">
+
+                            Ver incidente
+
+                        </a>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+            </table>
+
+            {% else %}
+
+            <div class="alert alert-info">
+                No hay incidentes registrados.
+            </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    <!-- CASOS -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <h3 class="mb-4">
+                Casos asociados
+            </h3>
+
+            {% if cases %}
+
+            <table class="table table-hover align-middle">
+
+                <thead class="table-dark">
+
+                    <tr>
+
+                        <th>Fecha</th>
+                        <th>Caso</th>
+                        <th>Estado</th>
+                        <th>Ver</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for case in cases %}
+
+                    <tr>
+
+                        <td>
+                            {{ case.fecha_creacion.strftime('%d/%m/%Y') }}
+                        </td>
+
+                        <td>
+                            {{ case.nombre }}
+                        </td>
+
+                        <td>
+
+                            {% if case.estado == "ABIERTO" %}
+
+                                <span class="badge bg-primary">
+                                    Abierto
+                                </span>
+
+                            {% elif case.estado == "RESUELTO" %}
+
+                                <span class="badge bg-success">
+                                    Resuelto
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-secondary">
+                                    Archivado
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            <a
+                            href="{{ url_for('encargado_de_convivencia.detalleCaso', caso_id=case.id) }}"
+                            class="btn btn-primary btn-sm">
+
+                                Ver caso
+
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+            {% else %}
+
+            <div class="alert alert-info">
+                No hay casos asociados.
+            </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    <!-- HISTORIAL -->
+
+    <div class="card shadow-sm mb-5">
+
+    <div class="card-body">
+
+        <h3 class="mb-4">
+            Historial
+        </h3>
+
+        {% if history %}
+
+        <table class="table table-hover align-middle">
+
+            <thead class="table-dark">
+
+                <tr>
+
+                    <th>Fecha</th>
+                    <th>Descripción</th>
+                    <th>Responsable</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for item in history %}
+
+                <tr>
+
+                    <td>
+                        {{ item.fecha_adicion.strftime('%d/%m/%Y') }}
+                    </td>
+
+                    <td>
+                        {{ item.descripcion }}
+                    </td>
+
+                    <td>
+                        {{ item.creador.nombre_completo }}
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+        {% else %}
+
+        <div class="alert alert-info">
+            No existe historial registrado.
+        </div>
+
+        {% endif %}
+
+    </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
