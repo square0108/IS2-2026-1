@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %} Detalle del Caso {% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Gestión de caso</h1>
+        <a href="{{ url_for('encargado_de_convivencia.misCasos') }}" class="btn btn-outline-secondary">Volver a mis casos</a>
+    </div>
+
+    <div class="card shadow-sm border-primary mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">{{ caso.nombre }}</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>ID:</strong> #{{ caso.id }}</p>
+                    <p><strong>Fecha de creación:</strong> {{ caso.fecha_creacion.strftime('%d-%m-%Y a las %H:%M') }}</p>
+                    <p><strong>Encargado:</strong> {{ caso.encargado.nombre_completo }}</p>
+                </div>
+                
+                <div class="col-md-6 border-start">
+                    <form method="POST" action="">
+                        <div class="mb-3">
+                            <label for="estado_caso" class="form-label fw-bold">Estado actual:</label>
+                            <select class="form-select" id="estado_caso" name="estado_caso">
+                                <option value="ABIERTO" {% if caso.estado == 'ABIERTO' %}selected{% endif %}>ABIERTO</option>
+                                <option value="RESUELTO" {% if caso.estado == 'RESUELTO' %}selected{% endif %}>RESUELTO</option>
+                                <option value="ARCHIVADO" {% if caso.estado == 'ARCHIVADO' %}selected{% endif %}>ARCHIVADO</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Actualizar estado</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Antecedentes relevantes</h5>
+            <a href="#" class="btn btn-sm btn-success">+ Adjuntar nuevo antecedente</a>
+        </div>
+        
+        <div class="card-body">
+            {% if caso.evidencias %}
+                <ul class="list-group list-group-flush">
+                    {% for antecedente in caso.evidencias %}
+                        <li class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ antecedente.tipo_antecedente | capitalize }}</h6>
+                                <small class="text-muted">{{ antecedente.fecha_adicion.strftime('%d-%m-%Y') }}</small>
+                            </div>
+                            <p class="mb-1">{{ antecedente.descripcion }}</p>
+                            <small class="text-muted">Reportado por: {{ antecedente.creador.nombre_completo }}</small>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="text-center py-4 text-muted">
+                    <p>Aún no hay antecedentes vinculados a este caso.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -106,3 +106,34 @@ def misCasos():
     return render_template('my_cases.html', 
                            casos_abiertos=casos_abiertos, 
                            casos_cerrados=casos_cerrados)
+
+
+@manager.route('/caso/<int:caso_id>', methods=["GET", "POST"])
+@login_required("encargado_de_convivencia")
+def detalleCaso(caso_id):
+    # Obtener el caso de la BD. Si no existe, lanza un error 404 automáticamente.
+    caso = Caso.query.get_or_404(caso_id)
+    
+    # Validación de seguridad: Asegurarse de que el caso le pertenece a este encargado
+    if caso.encargado_id != session.get('user_id'):
+        flash("No tienes permiso para ver o editar este caso.", "danger")
+        return redirect(url_for('encargado_de_convivencia.misCasos'))
+
+    # Si se envía el formulario para cambiar el estado
+    if request.method == "POST":
+        nuevo_estado = request.form.get('estado_caso')
+        
+        # Validar que el estado enviado sea uno de los permitidos
+        if nuevo_estado in ['ABIERTO', 'RESUELTO', 'ARCHIVADO']:
+            caso.estado = nuevo_estado
+            try:
+                db.session.commit()
+                flash(f"El estado del caso ha sido actualizado a {nuevo_estado}.", "success")
+            except Exception as e:
+                db.session.rollback()
+                flash("Error al actualizar el estado del caso.", "danger")
+                print(f"Error: {e}")
+                
+        return redirect(url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id))
+
+    return render_template('case_detail.html', caso=caso)

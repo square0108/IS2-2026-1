@@ -31,8 +31,7 @@
                                 <h5 class="card-title text-primary">{{ caso.nombre }}</h5>
                                 <p class="mb-1"><small class="text-muted">Estado: <span class="badge bg-primary">{{ caso.estado }}</span></small></p>
                                 <p class="mb-3"><small class="text-muted">Apertura: {{ caso.fecha_creacion.strftime('%d-%m-%Y') }}</small></p>
-                                <!-- Este botón apunta a # por ahora, lo actualizaremos en el Paso 4 -->
-                                <a href="#" class="btn btn-outline-primary btn-sm w-100">Gestionar caso</a>
+                                <a href="{{ url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id) }}" class="btn btn-outline-primary btn-sm w-100">Gestionar caso</a>
                             </div>
                         </div>
                     </div>
@@ -54,8 +53,7 @@
                                 <h5 class="card-title text-muted">{{ caso.nombre }}</h5>
                                 <p class="mb-1"><small class="text-muted">Estado: <span class="badge bg-secondary">{{ caso.estado }}</span></small></p>
                                 <p class="mb-3"><small class="text-muted">Apertura: {{ caso.fecha_creacion.strftime('%d-%m-%Y') }}</small></p>
-                                <!-- Botón en disabled ya que está cerrado, o solo modo lectura -->
-                                <a href="#" class="btn btn-outline-secondary btn-sm w-100">Ver Detalles</a>
+                                <a href="{{ url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id) }}" class="btn btn-outline-secondary btn-sm w-100">Ver detalles</a>
                             </div>
                         </div>
                     </div>
