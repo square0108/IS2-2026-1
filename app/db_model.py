@@ -90,6 +90,9 @@ class Caso(db.Model):
     estado = db.Column(db.String(30), nullable=False, default='ABIERTO')
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     fecha_limite = db.Column(db.DateTime, nullable=True)
+
+    encargado_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    encargado = db.relationship('Usuario', backref=db.backref('casos_gestionados', lazy=True))
     
     evidencias = db.relationship(
         'Antecedente',

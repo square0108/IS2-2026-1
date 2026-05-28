@@ -8,10 +8,12 @@ reportador = Blueprint('reportador', __name__)
 
 CONST_ENTRADAS_POR_PAGINA = 25
 
+
 @reportador.route('/')
 @login_required("reportador")
 def home():
   return render_template('reporter_home.html')
+
 
 # - Modificar search_students.html: determinar cómo se pasará la lista de estudiantes a template
 # - ¿Cuántos estudiantes se desplegarán? ¿Cómo implementar "páginas" de estudiantes"?
@@ -71,3 +73,21 @@ def nuevoReporte():
           print(f"Error al guardar el incidente: {e}") # Para visibilidad en tu terminal
 
       return redirect(url_for('reportador.nuevoReporte'))
+
+
+@reportador.route('/misReportes')
+@login_required("reportador")
+def misReportes():
+    # Identificar al usuario activo en la sesión
+    usuario_actual = session.get('user_id')
+    
+    # Consultar a la BD filtrando por el creador y ordenando por los más recientes primero
+    incidentes_del_usuario = (
+        Incidente.query
+        .filter_by(creador_id=usuario_actual)
+        .order_by(Incidente.fecha_adicion.desc())
+        .all()
+    )
+    
+    # Renderizar el nuevo template pasándole la lista de incidentes
+    return render_template('my_reports.html', incidentes=incidentes_del_usuario)

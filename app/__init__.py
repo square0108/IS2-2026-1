@@ -39,8 +39,12 @@ def create_app(test_config=None):
 
     from app.temp.routes import temp    # rutas de prueba
     app.register_blueprint(temp)
+
     from app.users.reportador.routes import reportador
     app.register_blueprint(reportador, url_prefix='/reportador')
+
+    from app.users.manager.routes import manager
+    app.register_blueprint(manager, url_prefix='/manager')
 
     from app.students.routes import students
     app.register_blueprint(students)

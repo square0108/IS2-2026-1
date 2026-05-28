@@ -1,0 +1,48 @@
+{% extends "base.html"%}
+
+{% block title %}Mis Reportes{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Incidentes reportados</h1>
+        <a href="{{ url_for('reportador.nuevoReporte') }}" class="btn btn-primary">Registrar Nuevo</a>
+    </div>
+
+    {% if incidentes %}
+        <div class="row row-cols-1 g-4">
+            {% for incidente in incidentes %}
+            <div class="col">
+                <div class="card shadow-sm h-100 border-primary">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between">
+                        <strong>{{ incidente.categoria | capitalize }}</strong>
+                        <small>{{ incidente.fecha_adicion.strftime('%d-%m-%Y %H:%M') }}</small>
+                    </div>
+                    
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted fw-bold">Estudiantes Involucrados:</h6>
+                        <ul class="mb-3">
+                            {% for estudiante in incidente.estudiantes %}
+                                <li>{{ estudiante.nombre_completo }} ({{ estudiante.curso.nombre }})</li>
+                            {% endfor %}
+                        </ul>
+                        
+                        <h6 class="card-subtitle mb-2 text-muted fw-bold">Descripción:</h6>
+                        <p class="card-text">{{ incidente.descripcion }}</p>
+                        
+                        <h6 class="card-subtitle mb-2 text-muted fw-bold">Respuesta Inmediata:</h6>
+                        <p class="card-text">{{ incidente.respuesta_inmediata }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info text-center shadow-sm" role="alert">
+            <p>Aún no has registrado ningún incidente en el sistema.</p>
+            <hr>
+            <p class="mb-0">Cuando registres un nuevo reporte, aparecerá aquí.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

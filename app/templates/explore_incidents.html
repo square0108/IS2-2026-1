@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %} Explorar y vincular antecedentes {% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="mb-4">
+        <h2>Adjuntar antecedentes</h2>
+        <p class="text-muted">Seleccione los antecedentes que desea vincular al caso: <strong>{{ caso.nombre }}</strong></p>
+    </div>
+
+    <form method="POST" action="">
+        <div class="card shadow-sm mb-4 border-success">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Buscador de antecedentes</h5>
+                <button type="submit" class="btn btn-light btn-sm fw-bold text-success">
+                    Vincular seleccionados
+                </button>
+            </div>
+            
+            <div class="card-body p-0">
+                {% if antecedentes %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col" class="text-center" style="width: 50px;">✔</th>
+                                <th scope="col">Fecha</th>
+                                <th scope="col">Tipo</th>
+                                <th scope="col">Estudiantes involucrados</th>
+                                <th scope="col">Descripción</th>
+                                <th scope="col">Reportado por</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ant in antecedentes %}
+                            <tr>
+                                <td class="text-center">
+                                    <!-- El value del checkbox es el ID que recibiremos en Flask -->
+                                    <input class="form-check-input" type="checkbox" name="antecedentes_seleccionados" value="{{ ant.id }}">
+                                </td>
+                                <td><small>{{ ant.fecha_adicion.strftime('%d-%m-%Y') }}</small></td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ ant.tipo_antecedente }}</span>
+                                </td>
+                                <td>
+                                    <ul class="list-unstyled mb-0 mb-1">
+                                    {% for est in ant.estudiantes %}
+                                        <li><small>• {{ est.nombre_completo }}</small></li>
+                                    {% endfor %}
+                                    </ul>
+                                </td>
+                                <td><small class="text-muted">{{ ant.descripcion }}</small></td>
+                                <td><small>{{ ant.creador.nombre_completo }}</small></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <p>No hay antecedentes adicionales disponibles para vincular en el sistema.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-between">
+            <a href="{{ url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id) }}" class="btn btn-outline-secondary">Cancelar y volver</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

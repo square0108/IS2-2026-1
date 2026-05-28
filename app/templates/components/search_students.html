@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h1 class="mb-4">Registrar un nuevo incidente</h1>
+    <h1 class="mb-4">Reportar nuevo incidente</h1>
 
     <div class="row">
         <!-- lado (columna) izquierdo de la pantalla es todo para info de estudiantes -->
@@ -72,7 +72,7 @@
                 -->
         <!-- Es decir, si desde Flask quieren acceder a los id's de todos los involucrados enviados, hagan lista = request.form.getlist('id_estudiantes_involucrados'). -->
         </div> <div class="col-lg-5">
-            <form method="POST" action="{{ url_for('reportador.nuevoReporte') }}" id="incidentForm">
+            <form method="POST" action="" id="incidentForm">
                 <div class="card shadow-sm border-primary mb-4">
                     
                     <div class="card-header bg-primary text-white fw-bold">
@@ -111,18 +111,6 @@
                         <textarea class="form-control" name="respuesta_inmediata" rows="4" placeholder="¿Qué hizo en respuesta al incidente?" required></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary btn-lg w-100">Registrar Incidente</button>
-                </div>
-
-                <!-- Aparece un mensaje de éxito si se registró exitosamente -->
-                 <div class="container mt-3">
-                    {% with messages = get_flashed_messages() %}
-                    {% if messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
-                        {{ messages[0] }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">OK</button>
-                    </div>
-                    {% endif %}
-                    {% endwith %}
                 </div>
 
             </form>
