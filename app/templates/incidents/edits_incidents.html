@@ -14,18 +14,18 @@
                 Editar incidente
             </h1>
 
-            <form>
+            <form method="POST">
 
                 <div class="mb-3">
 
                     <label class="form-label">
-                        Fecha
+                        Fecha de creación
                     </label>
 
                     <input
                     type="text"
                     class="form-control"
-                    value="{{ incident.date }}"
+                    value="{{ incident.created_at }}"
                     disabled>
 
                 </div>
@@ -37,8 +37,9 @@
                     </label>
 
                     <textarea
+                    name="description"
                     class="form-control"
-                    rows="4">{{ incident.incident }}</textarea>
+                    rows="4">{{ incident.description }}</textarea>
 
                 </div>
 
@@ -48,48 +49,63 @@
                         Estado
                     </label>
 
-                    <select class="form-select">
+                    <select
+                    name="status"
+                    class="form-select">
 
                         <option
+                        value="Abierto"
                         {% if incident.status == "Abierto" %}
                         selected
                         {% endif %}>
+
                             Abierto
+
                         </option>
 
                         <option
+                        value="En proceso"
                         {% if incident.status == "En proceso" %}
                         selected
                         {% endif %}>
+
                             En proceso
+
                         </option>
 
                         <option
+                        value="Finalizado"
                         {% if incident.status == "Finalizado" %}
                         selected
                         {% endif %}>
+
                             Finalizado
+
                         </option>
 
                     </select>
 
                 </div>
 
-                <button
-                type="submit"
-                class="btn btn-success">
+                <div class="d-flex gap-2">
 
-                    Guardar cambios
+                    <button
+                    type="submit"
+                    class="btn btn-success">
 
-                </button>
+                        Guardar cambios
 
-                <a
-                href="/incidents"
-                class="btn btn-secondary">
+                    </button>
 
-                    Volver
+                    <a
+                    href="{{ url_for('incidents.incidents_list') }}"
+                    class="btn btn-secondary">
 
-                </a>
+                        Volver
+
+                    </a>
+
+                </div>
 
             </form>
 

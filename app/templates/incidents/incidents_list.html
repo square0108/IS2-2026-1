@@ -18,15 +18,19 @@
                 Profesor: {{ teacher_name }}
             </h5>
 
+            {% if incidents %}
+
             <table class="table table-hover align-middle">
 
                 <thead class="table-dark">
 
                     <tr>
+
                         <th>Fecha</th>
                         <th>Incidente</th>
                         <th>Estado</th>
                         <th>Editar</th>
+
                     </tr>
 
                 </thead>
@@ -38,11 +42,11 @@
                     <tr>
 
                         <td>
-                            {{ incident.date }}
+                            {{ incident.created_at }}
                         </td>
 
                         <td>
-                            {{ incident.incident }}
+                            {{ incident.description }}
                         </td>
 
                         <td>
@@ -59,10 +63,16 @@
                                     En proceso
                                 </span>
 
-                            {% else %}
+                            {% elif incident.status == "Finalizado" %}
 
                                 <span class="badge bg-success">
                                     Finalizado
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-secondary">
+                                    Desconocido
                                 </span>
 
                             {% endif %}
@@ -72,7 +82,7 @@
                         <td>
 
                             <a
-                            href="/incidents/{{ incident.id }}/edit"
+                            href="{{ url_for('incidents.edit_incident', id=incident.id) }}"
                             class="btn btn-primary btn-sm">
 
                                 Editar
@@ -88,6 +98,16 @@
                 </tbody>
 
             </table>
+
+            {% else %}
+
+            <div class="alert alert-info">
+
+                No existen incidentes registrados.
+
+            </div>
+
+            {% endif %}
 
         </div>
 
