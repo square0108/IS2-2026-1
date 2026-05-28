@@ -41,7 +41,7 @@
     <div class="card shadow-sm">
         <div class="card-header bg-light d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Antecedentes relevantes</h5>
-            <a href="#" class="btn btn-sm btn-success">+ Adjuntar nuevo antecedente</a>
+            <a href="{{ url_for('encargado_de_convivencia.vincularEvidencia', caso_id=caso.id) }}" class="btn btn-sm btn-success">+ Adjuntar nuevo antecedente</a>
         </div>
         
         <div class="card-body">

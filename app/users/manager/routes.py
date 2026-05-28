@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, session, request, flash, redirect, url_for
 from app.auth.login_required import login_required
-from app.db_model import db, Estudiante, Curso, Incidente, Caso
+from app.db_model import db, Estudiante, Curso, Incidente, Caso, Antecedente
 
 manager = Blueprint('encargado_de_convivencia', __name__)
 
@@ -137,3 +137,48 @@ def detalleCaso(caso_id):
         return redirect(url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id))
 
     return render_template('case_detail.html', caso=caso)
+
+
+@manager.route('/caso/<int:caso_id>/vincular', methods=["GET", "POST"])
+@login_required("encargado_de_convivencia")
+def vincularEvidencia(caso_id):
+    caso = Caso.query.get_or_404(caso_id)
+    
+    # Validación de seguridad: el caso debe pertenecer al encargado en sesión
+    if caso.encargado_id != session.get('user_id'):
+        flash("No tienes permiso para editar este caso.", "danger")
+        return redirect(url_for('encargado_de_convivencia.misCasos'))
+
+    if request.method == "POST":
+        # request.form.getlist atrapa todos los checkboxes seleccionados
+        ids_seleccionados = request.form.getlist('antecedentes_seleccionados')
+        
+        if not ids_seleccionados:
+            flash("No se seleccionó ningún antecedente para vincular.", "warning")
+            return redirect(url_for('encargado_de_convivencia.vincularEvidencia', caso_id=caso.id))
+
+        # Buscamos los antecedentes seleccionados en la BD
+        antecedentes_a_vincular = Antecedente.query.filter(Antecedente.id.in_(ids_seleccionados)).all()
+
+        # Los agregamos a la relación. SQLAlchemy maneja la tabla intermedia automáticamente
+        for ant in antecedentes_a_vincular:
+            if ant not in caso.evidencias:
+                caso.evidencias.append(ant)
+
+        try:
+            db.session.commit()
+            flash(f"Se vincularon {len(antecedentes_a_vincular)} evidencias al caso exitosamente.", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash("Ocurrió un error al vincular la evidencia.", "danger")
+            print(f"Error: {e}")
+
+        # Volvemos a la vista de detalles para ver los cambios reflejados
+        return redirect(url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id))
+
+    # GET: Obtenemos todos los antecedentes del sistema para mostrarlos
+    # (Para no duplicar visualmente, omitimos los que ya están en el caso)
+    todos_los_antecedentes = Antecedente.query.order_by(Antecedente.fecha_adicion.desc()).all()
+    antecedentes_disponibles = [a for a in todos_los_antecedentes if a not in caso.evidencias]
+
+    return render_template('explore_incidents.html', caso=caso, antecedentes=antecedentes_disponibles)
