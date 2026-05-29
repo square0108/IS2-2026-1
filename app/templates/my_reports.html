@@ -21,9 +21,18 @@
                     
                     <div class="card-body">
                         <h6 class="card-subtitle mb-2 text-muted fw-bold">Estudiantes Involucrados:</h6>
+                        <!-- Ir a expediente -->
                         <ul class="mb-3">
                             {% for estudiante in incidente.estudiantes %}
-                                <li>{{ estudiante.nombre_completo }} ({{ estudiante.curso.nombre }})</li>
+                                <li>
+                                    {{ estudiante.nombre_completo }} ({{ estudiante.curso.nombre }})
+                                    {% if session.get('user_type') == 'encargado_de_convivencia' %}
+                                        <a href="{{ url_for('encargado_de_convivencia.expedienteEstudiante', estudiante_id=estudiante.id) }}" 
+                                           class="text-decoration-none ms-1" 
+                                           title="Ver expediente" 
+                                           target="_blank">🔍</a>
+                                    {% endif %}
+                                </li>
                             {% endfor %}
                         </ul>
                         
