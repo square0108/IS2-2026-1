@@ -31,8 +31,7 @@
                                 {{ estudiante.nombre_completo }} ({{ estudiante.curso.nombre }})
                                 <a href="{{ url_for('encargado_de_convivencia.expedienteEstudiante', estudiante_id=estudiante.id) }}" 
                                    class="text-decoration-none ms-1" 
-                                   title="Ver expediente" 
-                                   target="_blank">🔍</a>
+                                   title="Ver expediente">🔍</a>
                             </li>
                         {% endfor %}
                     </ul>

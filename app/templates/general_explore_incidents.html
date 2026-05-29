@@ -63,8 +63,7 @@
                                                 {% if session.get('user_type') == 'encargado_de_convivencia' %}
                                                     <a href="{{ url_for('encargado_de_convivencia.expedienteEstudiante', estudiante_id=est.id) }}" 
                                                        class="text-decoration-none ms-1" 
-                                                       title="Ver expediente" 
-                                                       target="_blank">🔍</a>
+                                                       title="Ver expediente">🔍</a>
                                                 {% endif %}
                                             </li>
                                         {% endfor %}

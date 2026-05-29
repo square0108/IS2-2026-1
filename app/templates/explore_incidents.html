@@ -53,8 +53,7 @@
                                                 {% if session.get('user_type') == 'encargado_de_convivencia' %}
                                                     <a href="{{ url_for('encargado_de_convivencia.expedienteEstudiante', estudiante_id=est.id) }}" 
                                                        class="text-decoration-none ms-1" 
-                                                       title="Ver expediente" 
-                                                       target="_blank">🔍</a>
+                                                       title="Ver expediente">🔍</a>
                                                 {% endif %}
                                             </li>
                                         {% endfor %}
@@ -63,7 +62,7 @@
                                 <td><small class="text-muted">{{ ant.descripcion }}</small></td>
                                 <td><small>{{ ant.creador.nombre_completo }}</small></td>
                                 <td>
-                                    <a href="{{ url_for('encargado_de_convivencia.verIncidente', incidente_id=ant.id) }}" class="btn btn-sm btn-outline-primary" target="_blank">Ver incidente</a>
+                                    <a href="{{ url_for('encargado_de_convivencia.verIncidente', incidente_id=ant.id) }}" class="btn btn-sm btn-outline-primary">Ver incidente</a>
                                 </td>
                             </tr>
                             {% endfor %}
