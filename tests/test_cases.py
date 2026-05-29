@@ -5,7 +5,7 @@ def login_session(client):
 
     with client.session_transaction() as session:
         session["user_id"] = 1
-        session["tipo_usuario"] = "encargado_de_convivencia"
+        session["user_type"] = "encargado_de_convivencia"
 
 
 def test_create_case_page_loads():
@@ -16,7 +16,7 @@ def test_create_case_page_loads():
 
         login_session(client)
 
-        response = client.get('/nuevoCaso')
+        response = client.get('/manager/nuevoCaso')
 
         assert response.status_code == 200
 
@@ -30,7 +30,7 @@ def test_case_requires_name():
         login_session(client)
 
         response = client.post(
-            '/nuevoCaso',
+            '/manager/nuevoCaso',
             data={
                 "nombre_caso": ""
             },
@@ -51,7 +51,7 @@ def test_create_case_successfully():
         login_session(client)
 
         response = client.post(
-            '/nuevoCaso',
+            '/manager/nuevoCaso',
             data={
                 "nombre_caso": "Caso bullying"
             },
