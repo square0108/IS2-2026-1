@@ -85,14 +85,23 @@ def nuevoCaso():
         nombre_caso = request.form.get('nombre_caso')
         ids_seleccionados = request.form.getlist('antecedentes_seleccionados')
         
-        # ESCENARIO 1: Guardando el caso (el usuario ingresó el nombre y apretó "Abrir Caso")
-        if nombre_caso:
+        # ESCENARIO 1: El usuario envió el formulario final para guardar el caso
+        # (Sabemos esto porque la llave 'nombre_caso' viene en la petición POST)
+        if 'nombre_caso' in request.form:
+            
+            # Restauramos la validación que faltaba
+            if not nombre_caso or not nombre_caso.strip():
+                flash("El nombre del caso es obligatorio.", "warning")
+                # Si faltó el nombre, recargamos la página
+                return render_template('new_case.html', preseleccionados=ids_seleccionados, cantidad=len(ids_seleccionados))
+            
+            # Si el nombre es válido, inicializamos
             nuevo_caso = Caso(
-                nombre=nombre_caso,
+                nombre=nombre_caso.strip(),
                 encargado_id=session.get('user_id')
             )
             
-            # Si traía incidentes preseleccionados desde el explorador, los vinculamos ahora
+            # Vinculamos los incidentes si venían preseleccionados
             if ids_seleccionados:
                 evidencias = Antecedente.query.filter(Antecedente.id.in_(ids_seleccionados)).all()
                 for ev in evidencias:
@@ -101,7 +110,7 @@ def nuevoCaso():
             try:
                 db.session.add(nuevo_caso)
                 db.session.commit()
-                flash(f"El caso '{nombre_caso}' ha sido abierto y configurado exitosamente.", "success")
+                flash(f"El caso '{nombre_caso}' ha sido abierto exitosamente.", "success")
                 return redirect(url_for('encargado_de_convivencia.misCasos'))
             except Exception as e:
                 db.session.rollback()
@@ -109,12 +118,12 @@ def nuevoCaso():
                 print(f"Error: {e}")
                 return redirect(url_for('encargado_de_convivencia.nuevoCaso'))
                 
-        # ESCENARIO 2: Llegando desde el Explorador (Trae IDs seleccionados, pero aún no tiene nombre de caso)
+        # ESCENARIO 2: Llegando desde el Explorador (Aún no envía 'nombre_caso')
         elif ids_seleccionados:
             cantidad_preseleccionada = len(ids_seleccionados)
             return render_template('new_case.html', preseleccionados=ids_seleccionados, cantidad=cantidad_preseleccionada)
 
-    # ESCENARIO 3: GET normal (El usuario apretó "Abrir nuevo caso" desde el Dashboard, sin incidentes preseleccionados)
+    # ESCENARIO 3: GET normal
     return render_template('new_case.html', preseleccionados=[], cantidad=0)
 
 
