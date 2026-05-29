@@ -21,7 +21,7 @@
 
                     <div class="col-md-4 mb-2">
                         <select class="form-select" name="curso">
-                            <option selected>Seleccionar curso</option>
+                            <option value="" selected>Seleccionar curso</option>
                             {% for curso in Cursos %}
                                 <option value="{{ curso.nombre }}">{{ curso.nombre }}</option>
                             {% endfor %}

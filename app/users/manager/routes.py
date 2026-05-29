@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, session, request, flash, redirect, url_for
 from app.auth.login_required import login_required
 from app.db_model import db, Estudiante, Curso, Incidente, Caso, Antecedente
+from app.queries import ejecutar_consulta
 
 manager = Blueprint('encargado_de_convivencia', __name__)
 
@@ -15,11 +16,14 @@ def home():
 def nuevoReporte():
     if request.method == "GET":
         # Despliegue de listas
-        query_EstudianteCurso = Estudiante.query.join(Curso).order_by(Estudiante.nombre_completo.asc(), Curso.nombre.asc())
-        query_cursos = Curso.query.order_by(Curso.nombre.asc()).all() 
+        query_cursos = Curso.query.order_by(Curso.nombre.asc()).all()
+
+        q = request.args.get('q')
+        curso = request.args.get('curso')
+        estudiantes = ejecutar_consulta("buscar_estudiantes", {"q": q, "curso": curso, "raw": True})
 
         return render_template('components/search_students.html',
-                               EstudianteCurso_todos=query_EstudianteCurso,
+                               EstudianteCurso_todos=estudiantes,
                                Cursos=query_cursos)
                                
     elif request.method == "POST":
