@@ -14,14 +14,27 @@
                     <p class="text-muted mb-4">Ingrese un nombre descriptivo para agrupar los antecedentes de esta investigación.</p>
                     
                     <form method="POST" action="">
+                        
+                        <!-- Bloque informativo y campos ocultos -->
+                        {% if preseleccionados %}
+                            <div class="alert alert-info border-info mb-4">
+                                <strong>Aviso:</strong> Se vincularán automáticamente <strong>{{ cantidad }}</strong> incidente(s) a este nuevo caso al momento de crearlo.
+                            </div>
+                            
+                            <!-- Inyectamos los IDs de forma invisible para que viajen en el POST final -->
+                            {% for id_ant in preseleccionados %}
+                                <input type="hidden" name="antecedentes_seleccionados" value="{{ id_ant }}">
+                            {% endfor %}
+                        {% endif %}
+
                         <div class="mb-4">
-                            <label for="nombre_caso" class="form-label fw-bold">Nombre del caso de investigación</label>
+                            <label for="nombre_caso" class="form-label fw-bold">Nombre del caso</label>
                             <input type="text" class="form-control" id="nombre_caso" name="nombre_caso" placeholder="Ej: Conflicto recurrente en 1 Medio A" required>
                         </div>
                         
                         <div class="d-flex justify-content-between">
                             <a href="{{ url_for('encargado_de_convivencia.home') }}" class="btn btn-outline-secondary">Cancelar</a>
-                            <button type="submit" class="btn btn-success">Abrir caso de investigación</button>
+                            <button type="submit" class="btn btn-success">Abrir caso</button>
                         </div>
                     </form>
                 </div>

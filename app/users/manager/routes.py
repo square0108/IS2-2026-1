@@ -60,35 +60,62 @@ def nuevoReporte():
         return redirect(url_for('encargado_de_convivencia.nuevoReporte'))
 
 
+@manager.route('/explorarIncidentes', methods=["GET"])
+@login_required("encargado_de_convivencia")
+def explorarIncidentes():
+    # Obtenemos el filtro por GET (si no existe, por defecto es 'todos')
+    filtro = request.args.get('filtro', 'todos')
+    
+    # Consultamos exclusivamente los Incidentes
+    query = Incidente.query.order_by(Incidente.fecha_adicion.desc())
+    
+    # Aplicamos el filtro si el usuario quiere ver solo los suyos
+    if filtro == 'mios':
+        query = query.filter_by(creador_id=session.get('user_id'))
+        
+    incidentes = query.all()
+    
+    return render_template('general_explore_incidents.html', incidentes=incidentes, filtro=filtro)
+
+
 @manager.route('/nuevoCaso', methods=["GET", "POST"])
 @login_required("encargado_de_convivencia")
 def nuevoCaso():
     if request.method == "POST":
         nombre_caso = request.form.get('nombre_caso')
+        ids_seleccionados = request.form.getlist('antecedentes_seleccionados')
         
-        if not nombre_caso:
-            flash("El nombre del caso es obligatorio.", "warning")
-            return redirect(url_for('encargado_de_convivencia.nuevoCaso'))
+        # ESCENARIO 1: Guardando el caso (el usuario ingresó el nombre y apretó "Abrir Caso")
+        if nombre_caso:
+            nuevo_caso = Caso(
+                nombre=nombre_caso,
+                encargado_id=session.get('user_id')
+            )
+            
+            # Si traía incidentes preseleccionados desde el explorador, los vinculamos ahora
+            if ids_seleccionados:
+                evidencias = Antecedente.query.filter(Antecedente.id.in_(ids_seleccionados)).all()
+                for ev in evidencias:
+                    nuevo_caso.evidencias.append(ev)
+            
+            try:
+                db.session.add(nuevo_caso)
+                db.session.commit()
+                flash(f"El caso '{nombre_caso}' ha sido abierto y configurado exitosamente.", "success")
+                return redirect(url_for('encargado_de_convivencia.misCasos'))
+            except Exception as e:
+                db.session.rollback()
+                flash("Ocurrió un error al intentar crear el caso.", "danger")
+                print(f"Error: {e}")
+                return redirect(url_for('encargado_de_convivencia.nuevoCaso'))
+                
+        # ESCENARIO 2: Llegando desde el Explorador (Trae IDs seleccionados, pero aún no tiene nombre de caso)
+        elif ids_seleccionados:
+            cantidad_preseleccionada = len(ids_seleccionados)
+            return render_template('new_case.html', preseleccionados=ids_seleccionados, cantidad=cantidad_preseleccionada)
 
-        # Inicializamos el caso. El modelo ya tiene por defecto estado='ABIERTO' y fecha actual
-        nuevo_caso = Caso(
-            nombre=nombre_caso,
-            encargado_id=session.get('user_id')
-        )
-        
-        try:
-            db.session.add(nuevo_caso)
-            db.session.commit()
-            flash(f"El caso '{nombre_caso}' ha sido abierto exitosamente.", "success")
-            # Redirigir a la lista de casos
-            return redirect(url_for('encargado_de_convivencia.misCasos'))
-        except Exception as e:
-            db.session.rollback()
-            flash("Ocurrió un error al intentar crear el caso.", "danger")
-            print(f"Error: {e}")
-            return redirect(url_for('encargado_de_convivencia.nuevoCaso'))
-
-    return render_template('new_case.html')
+    # ESCENARIO 3: GET normal (El usuario apretó "Abrir nuevo caso" desde el Dashboard, sin incidentes preseleccionados)
+    return render_template('new_case.html', preseleccionados=[], cantidad=0)
 
 
 @manager.route('/misCasos', methods=["GET"])
