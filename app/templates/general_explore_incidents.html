@@ -1,32 +1,43 @@
 {% extends "base.html" %}
 
-{% block title %} Explorar y vincular antecedentes {% endblock %}
+{% block title %} Explorador de Incidentes {% endblock %}
 
 {% block content %}
 <div class="container mt-5">
-    <div class="mb-4">
-        <h2>Adjuntar antecedentes</h2>
-        <p class="text-muted">Seleccione los antecedentes que desea vincular al caso: <strong>{{ caso.nombre }}</strong></p>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Explorador de incidentes</h1>
+        <a href="{{ url_for('encargado_de_convivencia.home') }}" class="btn btn-outline-secondary">Volver al panel</a>
     </div>
 
-    <form method="POST" action="">
-        <div class="card shadow-sm mb-4 border-success">
-            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Buscador de antecedentes</h5>
-                <button type="submit" class="btn btn-light btn-sm fw-bold text-success">
-                    Vincular seleccionados
+    <!-- Filtros de Autoría -->
+    <ul class="nav nav-pills mb-4">
+        <li class="nav-item">
+            <a class="nav-link {% if filtro == 'todos' %}active{% endif %}" href="{{ url_for('encargado_de_convivencia.explorarIncidentes', filtro='todos') }}">Todos los incidentes</a>
+        </li>
+        <li class="nav-item ms-2">
+            <a class="nav-link {% if filtro == 'mios' %}active{% endif %}" href="{{ url_for('encargado_de_convivencia.explorarIncidentes', filtro='mios') }}">Mis reportes</a>
+        </li>
+    </ul>
+
+    <!-- El formulario envuelve la tabla y apunta a la creación de casos -->
+    <form method="POST" action="{{ url_for('encargado_de_convivencia.nuevoCaso') }}">
+        <div class="card shadow-sm border-primary">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Registro de incidentes</h5>
+                <button type="submit" class="btn btn-light btn-sm fw-bold text-primary">
+                    Abrir nuevo caso con seleccionados
                 </button>
             </div>
             
             <div class="card-body p-0">
-                {% if antecedentes %}
+                {% if incidentes %}
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
                                 <th scope="col" class="text-center" style="width: 50px;">✔</th>
                                 <th scope="col">Fecha</th>
-                                <th scope="col">Tipo</th>
+                                <th scope="col">Categoría</th>
                                 <th scope="col">Estudiantes involucrados</th>
                                 <th scope="col">Descripción</th>
                                 <th scope="col">Reportado por</th>
@@ -34,19 +45,18 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for ant in antecedentes %}
+                            {% for inc in incidentes %}
                             <tr>
                                 <td class="text-center">
-                                    <!-- El value del checkbox es el ID que recibiremos en Flask -->
-                                    <input class="form-check-input" type="checkbox" name="antecedentes_seleccionados" value="{{ ant.id }}">
+                                    <input class="form-check-input" type="checkbox" name="antecedentes_seleccionados" value="{{ inc.id }}">
                                 </td>
-                                <td><small>{{ ant.fecha_adicion.strftime('%d-%m-%Y') }}</small></td>
+                                <td><small>{{ inc.fecha_adicion.strftime('%d-%m-%Y') }}</small></td>
                                 <td>
-                                    <span class="badge bg-secondary">{{ ant.tipo_antecedente }}</span>
+                                    <span class="badge bg-secondary">{{ inc.categoria | capitalize }}</span>
                                 </td>
                                 <td>
-                                    <ul class="list-unstyled mb-0 mb-1">
-                                        {% for est in ant.estudiantes %}
+                                    <ul class="list-unstyled mb-0">
+                                        {% for est in inc.estudiantes %}
                                             <li>
                                                 <!-- Ir a expediente -->
                                                 <small>• {{ est.nombre_completo }}</small>
@@ -59,10 +69,10 @@
                                         {% endfor %}
                                     </ul>
                                 </td>
-                                <td><small class="text-muted">{{ ant.descripcion }}</small></td>
-                                <td><small>{{ ant.creador.nombre_completo }}</small></td>
+                                <td><small class="text-muted">{{ inc.descripcion }}</small></td>
+                                <td><small>{{ inc.creador.nombre_completo }}</small></td>
                                 <td>
-                                    <a href="{{ url_for('encargado_de_convivencia.verIncidente', incidente_id=ant.id) }}" class="btn btn-sm btn-outline-primary">Ver incidente</a>
+                                    <a href="{{ url_for('encargado_de_convivencia.verIncidente', incidente_id=inc.id) }}" class="btn btn-sm btn-outline-primary">Ver incidente</a>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -71,14 +81,10 @@
                 </div>
                 {% else %}
                 <div class="text-center py-5 text-muted">
-                    <p>No hay antecedentes adicionales disponibles para vincular en el sistema.</p>
+                    <p>No se encontraron incidentes bajo este filtro.</p>
                 </div>
                 {% endif %}
             </div>
-        </div>
-        
-        <div class="d-flex justify-content-between">
-            <a href="{{ url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id) }}" class="btn btn-outline-secondary">Cancelar y volver</a>
         </div>
     </form>
 </div>

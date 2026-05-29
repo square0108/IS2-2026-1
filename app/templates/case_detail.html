@@ -54,7 +54,11 @@
                                 <small class="text-muted">{{ antecedente.fecha_adicion.strftime('%d-%m-%Y') }}</small>
                             </div>
                             <p class="mb-1">{{ antecedente.descripcion }}</p>
-                            <small class="text-muted">Reportado por: {{ antecedente.creador.nombre_completo }}</small>
+                            
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <small class="text-muted">Reportado por: {{ antecedente.creador.nombre_completo }}</small>
+                                <a href="{{ url_for('encargado_de_convivencia.verIncidente', incidente_id=antecedente.id) }}" class="btn btn-sm btn-outline-primary">Ver incidente</a>
+                            </div>
                         </li>
                     {% endfor %}
                 </ul>
