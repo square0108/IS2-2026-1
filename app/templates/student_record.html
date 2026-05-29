@@ -145,42 +145,27 @@
                 </thead>
 
                 <tbody>
-
-                {% for incident in incidents %}
-
-                <tr>
-
-                    <td>
-                        {{ incident.fecha_adicion.strftime('%d/%m/%Y') }}
-                    </td>
-
-                    <td>
-                        {{ incident.descripcion }}
-                    </td>
-
-                    <td>
-
-                        <span class="badge bg-primary">
-
-                            {{ incident.categoria }}
-
-                        </span>
-
-                    </td>
-
-                    <td>
-
-                        <a href="{{ url_for('encargado_de_convivencia.verIncidente', incidente_id=incident.id) }}" class="btn btn-outline-primary btn-sm">
-                            Ver incidente
-                        </a>
-
-                    </td>
-
-                </tr>
-
-                {% endfor %}
-
-            </tbody>
+                    {% for incident in incidents %}
+                    <tr>
+                        <td>
+                            {{ incident.fecha_adicion.strftime('%d/%m/%Y') }}
+                        </td>
+                        <td>
+                            {{ incident.descripcion }}
+                        </td>
+                        <td>
+                            <span class="badge bg-primary">
+                                {{ incident.categoria }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('encargado_de_convivencia.verIncidente', incidente_id=incident.id) }}" class="btn btn-outline-primary btn-sm">
+                                Ver incidente
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
 
             </table>
 
@@ -224,59 +209,36 @@
                 </thead>
 
                 <tbody>
-
                     {% for case in cases %}
-
                     <tr>
-
                         <td>
                             {{ case.fecha_creacion.strftime('%d/%m/%Y') }}
                         </td>
-
                         <td>
                             {{ case.nombre }}
                         </td>
-
                         <td>
-
                             {% if case.estado == "ABIERTO" %}
-
-                                <span class="badge bg-primary">
-                                    Abierto
-                                </span>
-
+                                <span class="badge bg-primary">Abierto</span>
                             {% elif case.estado == "RESUELTO" %}
-
-                                <span class="badge bg-success">
-                                    Resuelto
-                                </span>
-
+                                <span class="badge bg-success">Resuelto</span>
                             {% else %}
-
-                                <span class="badge bg-secondary">
-                                    Archivado
-                                </span>
-
+                                <span class="badge bg-secondary">Archivado</span>
                             {% endif %}
-
                         </td>
-
                         <td>
-
-                            <a
-                            href="{{ url_for('encargado_de_convivencia.detalleCaso', caso_id=case.id) }}"
-                            class="btn btn-primary btn-sm">
-
-                                Ver caso
-
-                            </a>
-
+                            {% if case.encargado_id == session.get('user_id') %}
+                                <a href="{{ url_for('encargado_de_convivencia.detalleCaso', caso_id=case.id) }}" class="btn btn-primary btn-sm">
+                                    Ver caso
+                                </a>
+                            {% else %}
+                                <button class="btn btn-secondary btn-sm" disabled title="Gestionado por {{ case.encargado.nombre_completo }}">
+                                    Restringido
+                                </button>
+                            {% endif %}
                         </td>
-
                     </tr>
-
                     {% endfor %}
-
                 </tbody>
 
             </table>
