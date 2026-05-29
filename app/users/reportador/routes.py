@@ -26,14 +26,15 @@ def nuevoReporte():
   ## --- GET --- #
   if request.method == "GET":
       # Para desplegar la lista de estudiantes y los cursos para filtrar
-      query_EstudianteCurso = Estudiante.query.join(Curso)
-      query_cursos = Curso.query.order_by(Curso.nombre.asc()).all() 
+      query_cursos = Curso.query.order_by(Curso.nombre.asc()).all()
 
-      query_EstudianteCurso = query_EstudianteCurso.order_by(Estudiante.nombre_completo.asc(), Curso.nombre.asc()) # ordenamiento primero por curso y luego alfabetico
-      # query_EstudianteCurso_paginada = query_EstudianteCurso.paginate(page=1, per_page=CONST_ENTRADAS_POR_PAGINA, error_out=False) # cambiar esto después para múltiples páginas
+      q = request.args.get('q')
+      curso = request.args.get('curso')
+      estudiantes = ejecutar_consulta("buscar_estudiantes", {"q": q, "curso": curso, "raw": True})
+
 
       return render_template('components/search_students.html',
-                            EstudianteCurso_todos=query_EstudianteCurso,
+                            EstudianteCurso_todos=estudiantes,
                             Cursos=query_cursos
                             ) # TODO: cambiar para que muestre entradas por páginas
   
