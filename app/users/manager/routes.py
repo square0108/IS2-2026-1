@@ -182,3 +182,70 @@ def vincularEvidencia(caso_id):
     antecedentes_disponibles = [a for a in todos_los_antecedentes if a not in caso.evidencias]
 
     return render_template('explore_incidents.html', caso=caso, antecedentes=antecedentes_disponibles)
+
+@manager.route('/estudiante/<int:estudiante_id>/expediente')
+@login_required("encargado_de_convivencia")
+def expedienteEstudiante(estudiante_id):
+
+    # =========================
+    # ESTUDIANTE
+    # =========================
+
+    estudiante = Estudiante.query.get_or_404(estudiante_id)
+
+    # =========================
+    # ANTECEDENTES
+    # =========================
+
+    antecedentes = estudiante.antecedentes
+
+    # =========================
+    # INCIDENTES
+    # =========================
+
+    incidentes = [
+        a for a in antecedentes
+        if isinstance(a, Incidente)
+    ]
+
+    incidentes.sort(
+        key=lambda x: x.fecha_adicion,
+        reverse=True
+    )
+
+    # =========================
+    # CASOS RELACIONADOS
+    # =========================
+
+    casos = []
+
+    for antecedente in antecedentes:
+
+        for caso in antecedente.casos_asociados:
+
+            if caso not in casos:
+                casos.append(caso)
+
+    casos.sort(
+        key=lambda x: x.fecha_creacion,
+        reverse=True
+    )
+
+    # =========================
+    # HISTORIAL
+    # =========================
+
+    historial = antecedentes
+
+    historial.sort(
+        key=lambda x: x.fecha_adicion,
+        reverse=True
+    )
+
+    return render_template(
+        'student_record.html',
+        student=estudiante,
+        incidents=incidentes,
+        cases=casos,
+        history=historial
+    )
