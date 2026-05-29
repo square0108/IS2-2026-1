@@ -280,3 +280,11 @@ def expedienteEstudiante(estudiante_id):
         cases=casos,
         history=historial
     )
+
+
+@manager.route('/incidente/<int:incidente_id>')
+@login_required("encargado_de_convivencia")
+def verIncidente(incidente_id):
+    # Usamos Antecedente para que la vista soporte cualquier tipo de registro en el futuro
+    incidente = Antecedente.query.get_or_404(incidente_id)
+    return render_template('incident_detail.html', incidente=incidente)

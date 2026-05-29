@@ -30,6 +30,7 @@
                                 <th scope="col">Estudiantes involucrados</th>
                                 <th scope="col">Descripción</th>
                                 <th scope="col">Reportado por</th>
+                                <th scope="col">Acción</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -61,6 +62,9 @@
                                 </td>
                                 <td><small class="text-muted">{{ ant.descripcion }}</small></td>
                                 <td><small>{{ ant.creador.nombre_completo }}</small></td>
+                                <td>
+                                    <a href="{{ url_for('encargado_de_convivencia.verIncidente', incidente_id=ant.id) }}" class="btn btn-sm btn-outline-primary" target="_blank">Ver incidente</a>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
