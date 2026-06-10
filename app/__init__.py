@@ -46,6 +46,9 @@ def create_app(test_config=None):
     from app.users.manager.routes import manager
     app.register_blueprint(manager, url_prefix='/manager')
 
+    from app.users.orientador.routes import orientador
+    app.register_blueprint(orientador, url_prefix='/orientador')
+
     from app.students.routes import students
     app.register_blueprint(students)
     
