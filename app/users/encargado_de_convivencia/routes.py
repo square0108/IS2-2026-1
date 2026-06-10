@@ -3,15 +3,15 @@ from app.auth.login_required import login_required
 from app.db_model import db, Estudiante, Curso, Incidente, Caso, Antecedente
 from app.queries import ejecutar_consulta
 
-manager = Blueprint('encargado_de_convivencia', __name__)
+encargado = Blueprint('encargado_de_convivencia', __name__)
 
-@manager.route('/')
+@encargado.route('/')
 @login_required("encargado_de_convivencia")
 def home():
-    return render_template('manager_home.html')
+    return render_template('encargado_de_convivencia/encargado_home.html')
 
 
-@manager.route('/reportarIncidente', methods=["GET", "POST"])
+@encargado.route('/reportarIncidente', methods=["GET", "POST"])
 @login_required("encargado_de_convivencia")
 def nuevoReporte():
     if request.method == "GET":
@@ -22,7 +22,7 @@ def nuevoReporte():
         curso = request.args.get('curso')
         estudiantes = ejecutar_consulta("buscar_estudiantes", {"q": q, "curso": curso, "raw": True})
 
-        return render_template('components/search_students.html',
+        return render_template('shared_components/search_students.html',
                                EstudianteCurso_todos=estudiantes,
                                Cursos=query_cursos)
                                
@@ -60,7 +60,7 @@ def nuevoReporte():
         return redirect(url_for('encargado_de_convivencia.nuevoReporte'))
 
 
-@manager.route('/explorarIncidentes', methods=["GET"])
+@encargado.route('/explorarIncidentes', methods=["GET"])
 @login_required("encargado_de_convivencia")
 def explorarIncidentes():
     # Obtenemos el filtro por GET (si no existe, por defecto es 'todos')
@@ -75,10 +75,10 @@ def explorarIncidentes():
         
     incidentes = query.all()
     
-    return render_template('general_explore_incidents.html', incidentes=incidentes, filtro=filtro)
+    return render_template('encargado_de_convivencia/general_explorar_antecedentes.html', incidentes=incidentes, filtro=filtro)
 
 
-@manager.route('/nuevoCaso', methods=["GET", "POST"])
+@encargado.route('/nuevoCaso', methods=["GET", "POST"])
 @login_required("encargado_de_convivencia")
 def nuevoCaso():
     if request.method == "POST":
@@ -93,7 +93,7 @@ def nuevoCaso():
             if not nombre_caso or not nombre_caso.strip():
                 flash("El nombre del caso es obligatorio.", "warning")
                 # Si faltó el nombre, recargamos la página
-                return render_template('new_case.html', preseleccionados=ids_seleccionados, cantidad=len(ids_seleccionados))
+                return render_template('encargado_de_convivencia/caso_nuevo.html', preseleccionados=ids_seleccionados, cantidad=len(ids_seleccionados))
             
             # Si el nombre es válido, inicializamos
             nuevo_caso = Caso(
@@ -121,13 +121,13 @@ def nuevoCaso():
         # ESCENARIO 2: Llegando desde el Explorador (Aún no envía 'nombre_caso')
         elif ids_seleccionados:
             cantidad_preseleccionada = len(ids_seleccionados)
-            return render_template('new_case.html', preseleccionados=ids_seleccionados, cantidad=cantidad_preseleccionada)
+            return render_template('encargado_de_convivencia/caso_nuevo.html', preseleccionados=ids_seleccionados, cantidad=cantidad_preseleccionada)
 
     # ESCENARIO 3: GET normal
-    return render_template('new_case.html', preseleccionados=[], cantidad=0)
+    return render_template('encargado_de_convivencia/caso_nuevo.html', preseleccionados=[], cantidad=0)
 
 
-@manager.route('/misCasos', methods=["GET"])
+@encargado.route('/misCasos', methods=["GET"])
 @login_required("encargado_de_convivencia")
 def misCasos():
     usuario_actual = session.get('user_id')
@@ -143,12 +143,12 @@ def misCasos():
         Caso.encargado_id == usuario_actual
     ).order_by(Caso.fecha_creacion.desc()).all()
 
-    return render_template('my_cases.html', 
+    return render_template('encargado_de_convivencia/mis_casos.html', 
                            casos_abiertos=casos_abiertos, 
                            casos_cerrados=casos_cerrados)
 
 
-@manager.route('/caso/<int:caso_id>', methods=["GET", "POST"])
+@encargado.route('/caso/<int:caso_id>', methods=["GET", "POST"])
 @login_required("encargado_de_convivencia")
 def detalleCaso(caso_id):
     # Obtener el caso de la BD. Si no existe, lanza un error 404 automáticamente.
@@ -176,10 +176,10 @@ def detalleCaso(caso_id):
                 
         return redirect(url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id))
 
-    return render_template('case_detail.html', caso=caso)
+    return render_template('encargado_de_convivencia/caso_detalles.html', caso=caso)
 
 
-@manager.route('/caso/<int:caso_id>/vincular', methods=["GET", "POST"])
+@encargado.route('/caso/<int:caso_id>/vincular', methods=["GET", "POST"])
 @login_required("encargado_de_convivencia")
 def vincularEvidencia(caso_id):
     caso = Caso.query.get_or_404(caso_id)
@@ -221,9 +221,9 @@ def vincularEvidencia(caso_id):
     todos_los_antecedentes = Antecedente.query.order_by(Antecedente.fecha_adicion.desc()).all()
     antecedentes_disponibles = [a for a in todos_los_antecedentes if a not in caso.evidencias]
 
-    return render_template('explore_incidents.html', caso=caso, antecedentes=antecedentes_disponibles)
+    return render_template('encargado_de_convivencia/explorar_antecedentes.html', caso=caso, antecedentes=antecedentes_disponibles)
 
-@manager.route('/estudiante/<int:estudiante_id>/expediente')
+@encargado.route('/estudiante/<int:estudiante_id>/expediente')
 @login_required("encargado_de_convivencia")
 def expedienteEstudiante(estudiante_id):
 
@@ -283,7 +283,7 @@ def expedienteEstudiante(estudiante_id):
     )
 
     return render_template(
-        'student_record.html',
+        'encargado_de_convivencia/expediente_estudiante.html',
         student=estudiante,
         incidents=incidentes,
         cases=casos,
@@ -291,9 +291,9 @@ def expedienteEstudiante(estudiante_id):
     )
 
 
-@manager.route('/incidente/<int:incidente_id>')
+@encargado.route('/incidente/<int:incidente_id>')
 @login_required("encargado_de_convivencia")
 def verIncidente(incidente_id):
     # Usamos Antecedente para que la vista soporte cualquier tipo de registro en el futuro
     incidente = Antecedente.query.get_or_404(incidente_id)
-    return render_template('incident_detail.html', incidente=incidente)
+    return render_template('encargado_de_convivencia/incidente_detalles.html', incidente=incidente)
