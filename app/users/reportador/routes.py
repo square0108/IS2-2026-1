@@ -12,7 +12,7 @@ CONST_ENTRADAS_POR_PAGINA = 25
 @reportador.route('/')
 @login_required("reportador")
 def home():
-  return render_template('reporter_home.html')
+  return render_template('reportador/reportador_home.html')
 
 
 # - Modificar search_students.html: determinar cómo se pasará la lista de estudiantes a template
@@ -33,7 +33,7 @@ def nuevoReporte():
       estudiantes = ejecutar_consulta("buscar_estudiantes", {"q": q, "curso": curso, "raw": True})
 
 
-      return render_template('components/search_students.html',
+      return render_template('shared_components/search_students.html',
                             EstudianteCurso_todos=estudiantes,
                             Cursos=query_cursos
                             ) # TODO: cambiar para que muestre entradas por páginas
@@ -91,4 +91,4 @@ def misReportes():
     )
     
     # Renderizar el nuevo template pasándole la lista de incidentes
-    return render_template('my_reports.html', incidentes=incidentes_del_usuario)
+    return render_template('shared_components/mis_reportes.html', incidentes=incidentes_del_usuario)
