@@ -20,11 +20,32 @@ def nuevoReporte():
 
         q = request.args.get('q')
         curso = request.args.get('curso')
-        estudiantes = ejecutar_consulta("buscar_estudiantes", {"q": q, "curso": curso, "raw": True})
+        page = request.args.get('page', 1, type=int)
+        
+        # Construir query con filtros
+        query = Estudiante.query.join(Curso)
+        
+        if curso:
+            query = query.filter(Curso.nombre == curso)
+        
+        if q:
+            like_q = f"%{q}%"
+            query = query.filter(Estudiante.nombre_completo.ilike(like_q))
+        
+        # Aplicar paginación: 10 estudiantes por página
+        pagination = query.order_by(
+            Estudiante.nombre_completo.asc(),
+            Curso.nombre.asc()
+        ).paginate(page=page, per_page=10, error_out=False)
+        
+        estudiantes = pagination.items
 
         return render_template('shared_components/search_students.html',
                                EstudianteCurso_todos=estudiantes,
-                               Cursos=query_cursos)
+                               Cursos=query_cursos,
+                               pagination=pagination,
+                               q=q,
+                               curso=curso)
                                
     elif request.method == "POST":
         categoria = request.form.get('categoria_incidente')
@@ -66,16 +87,21 @@ def explorarIncidentes():
     # Obtenemos el filtro por GET (si no existe, por defecto es 'todos')
     filtro = request.args.get('filtro', 'todos')
     
+    # Obtener número de página desde parámetros GET (por defecto 1)
+    page = request.args.get('page', 1, type=int)
+    
     # Consultamos exclusivamente los Incidentes
     query = Incidente.query.order_by(Incidente.fecha_adicion.desc())
     
     # Aplicamos el filtro si el usuario quiere ver solo los suyos
     if filtro == 'mios':
         query = query.filter_by(creador_id=session.get('user_id'))
-        
-    incidentes = query.all()
     
-    return render_template('encargado_de_convivencia/general_explorar_antecedentes.html', incidentes=incidentes, filtro=filtro)
+    # Usar paginación: 10 incidentes por página
+    pagination = query.paginate(page=page, per_page=10, error_out=False)
+    incidentes = pagination.items
+    
+    return render_template('encargado_de_convivencia/general_explorar_antecedentes.html', incidentes=incidentes, pagination=pagination, filtro=filtro)
 
 
 @encargado.route('/nuevoCaso', methods=["GET", "POST"])
@@ -132,20 +158,26 @@ def nuevoCaso():
 def misCasos():
     usuario_actual = session.get('user_id')
     
-    # Consultamos solo los casos que le pertenecen al encargado actual
-    casos_abiertos = Caso.query.filter_by(
+    # Paginación separada para abiertos y cerrados
+    page_abiertos = request.args.get('page_abiertos', 1, type=int)
+    page_cerrados = request.args.get('page_cerrados', 1, type=int)
+    
+    # Consultamos con paginación
+    pagination_abiertos = Caso.query.filter_by(
         estado='ABIERTO', 
         encargado_id=usuario_actual
-    ).order_by(Caso.fecha_creacion.desc()).all()
+    ).order_by(Caso.fecha_creacion.desc()).paginate(page=page_abiertos, per_page=10, error_out=False)
     
-    casos_cerrados = Caso.query.filter(
+    pagination_cerrados = Caso.query.filter(
         Caso.estado != 'ABIERTO', 
         Caso.encargado_id == usuario_actual
-    ).order_by(Caso.fecha_creacion.desc()).all()
+    ).order_by(Caso.fecha_creacion.desc()).paginate(page=page_cerrados, per_page=10, error_out=False)
 
     return render_template('encargado_de_convivencia/mis_casos.html', 
-                           casos_abiertos=casos_abiertos, 
-                           casos_cerrados=casos_cerrados)
+                           pagination_abiertos=pagination_abiertos,
+                           pagination_cerrados=pagination_cerrados,
+                           casos_abiertos=pagination_abiertos.items,
+                           casos_cerrados=pagination_cerrados.items)
 
 
 @encargado.route('/caso/<int:caso_id>', methods=["GET", "POST"])
@@ -216,12 +248,28 @@ def vincularEvidencia(caso_id):
         # Volvemos a la vista de detalles para ver los cambios reflejados
         return redirect(url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id))
 
-    # GET: Obtenemos todos los antecedentes del sistema para mostrarlos
+    # GET: Obtenemos todos los antecedentes del sistema para mostrarlos con paginación
     # (Para no duplicar visualmente, omitimos los que ya están en el caso)
+    page = request.args.get('page', 1, type=int)
+    
+    # Obtener todos primero para filtrar
     todos_los_antecedentes = Antecedente.query.order_by(Antecedente.fecha_adicion.desc()).all()
     antecedentes_disponibles = [a for a in todos_los_antecedentes if a not in caso.evidencias]
-
-    return render_template('encargado_de_convivencia/explorar_antecedentes.html', caso=caso, antecedentes=antecedentes_disponibles)
+    
+    # Calcular paginación manualmente (ya que es una lista filtrada)
+    per_page = 10
+    total = len(antecedentes_disponibles)
+    pages = (total + per_page - 1) // per_page
+    start = (page - 1) * per_page
+    end = start + per_page
+    antecedentes_pagina = antecedentes_disponibles[start:end]
+    
+    return render_template('encargado_de_convivencia/explorar_antecedentes.html', 
+                          caso=caso, 
+                          antecedentes=antecedentes_pagina,
+                          page=page,
+                          pages=pages,
+                          total=total)
 
 @encargado.route('/estudiante/<int:estudiante_id>/expediente')
 @login_required("encargado_de_convivencia")
@@ -282,12 +330,41 @@ def expedienteEstudiante(estudiante_id):
         reverse=True
     )
 
+    # =========================
+    # PAGINACIÓN
+    # =========================
+    
+    page_incidents = request.args.get('page_incidents', 1, type=int)
+    page_cases = request.args.get('page_cases', 1, type=int)
+    
+    per_page = 10
+    
+    # Paginación incidentes
+    total_incidents = len(incidentes)
+    pages_incidents = (total_incidents + per_page - 1) // per_page
+    start = (page_incidents - 1) * per_page
+    end = start + per_page
+    incidentes_pagina = incidentes[start:end]
+    
+    # Paginación casos
+    total_cases = len(casos)
+    pages_cases = (total_cases + per_page - 1) // per_page
+    start = (page_cases - 1) * per_page
+    end = start + per_page
+    casos_pagina = casos[start:end]
+
     return render_template(
         'encargado_de_convivencia/expediente_estudiante.html',
         student=estudiante,
-        incidents=incidentes,
-        cases=casos,
-        history=historial
+        incidents=incidentes_pagina,
+        cases=casos_pagina,
+        history=historial,
+        page_incidents=page_incidents,
+        pages_incidents=pages_incidents,
+        total_incidents=total_incidents,
+        page_cases=page_cases,
+        pages_cases=pages_cases,
+        total_cases=total_cases
     )
 
 

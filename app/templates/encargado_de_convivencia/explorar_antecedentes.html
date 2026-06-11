@@ -68,6 +68,44 @@
                             {% endfor %}
                         </tbody>
                     </table>
+
+                    <!-- PAGINACIÓN ANTECEDENTES -->
+                    {% if pages and pages > 1 %}
+                    <nav class="mt-4" aria-label="Paginación antecedentes">
+                        <ul class="pagination justify-content-center">
+                            {% if page > 1 %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('encargado_de_convivencia.vincularEvidencia', caso_id=caso.id, page=page-1) }}">← Anterior</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">← Anterior</span>
+                                </li>
+                            {% endif %}
+                            
+                            {% for p in range(1, pages + 1) %}
+                                {% if p == page %}
+                                    <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+                                {% else %}
+                                    <li class="page-item"><a class="page-link" href="{{ url_for('encargado_de_convivencia.vincularEvidencia', caso_id=caso.id, page=p) }}">{{ p }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if page < pages %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('encargado_de_convivencia.vincularEvidencia', caso_id=caso.id, page=page+1) }}">Siguiente →</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">Siguiente →</span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    <div class="text-center text-muted">
+                        <small>Página {{ page }} de {{ pages }} ({{ total }} antecedentes)</small>
+                    </div>
+                    {% endif %}
                 </div>
                 {% else %}
                 <div class="text-center py-5 text-muted">
