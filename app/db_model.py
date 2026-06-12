@@ -1,3 +1,12 @@
+"""
+Definición del esquema de la base de datos interna
+
+## Notas:
+- Suposición: derivar una acción a un especialista NO le da permisos para ver el caso
+- Suposición: resolver acciones derivadas NO genera antecedentes. La generación de antecedentes es un proceso totalmente independiente.
+- Restricción no modelada: diagnosticos deberian referencian a exactamente un estudiante. Actualmente referencian 0-n
+"""
+
 from datetime import datetime, timezone
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -22,6 +31,8 @@ class Usuario(db.Model):
     es_orientador = db.Column(db.Boolean, default=False, nullable=False)
     
     antecedentes_creados = db.relationship('Antecedente', backref='creador', lazy=True)
+
+    acciones_asignadas = db.relationship('Accion', foreign_keys='Accion.asignado_id', backref='asignado', lazy=True)
 
     #Hash de contraseña
     def set_password(self, raw_password):
@@ -77,7 +88,6 @@ class Incidente(Antecedente):
     __mapper_args__ = {'polymorphic_identity': 'INCIDENTE'}
 
 class Diagnostico(Antecedente):
-    # TODO: restricción no modelada: diagnosticos referencian a exactamente un estudiante
     __mapper_args__ = {'polymorphic_identity': 'DIAGNOSTICO'}
 
 class Observacion(Antecedente):
@@ -93,10 +103,28 @@ class Caso(db.Model):
 
     encargado_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     encargado = db.relationship('Usuario', backref=db.backref('casos_gestionados', lazy=True))
-    
+
+    acciones = db.relationship('Accion', backref='caso', lazy=True, cascade="all, delete-orphan")
+
     evidencias = db.relationship(
         'Antecedente',
         secondary='caso_evidencia',
         backref=db.backref('casos_asociados', lazy=True),
         lazy=True
     )
+
+class Accion(db.Model):
+    __tablename__ = 'acciones'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    descripcion = db.Column(db.Text, nullable=False)
+    resultado = db.Column(db.Text, nullable=True)
+    estado = db.Column(db.String(50), default='PENDIENTE', nullable=False)
+    
+    # Fechas independientes al caso
+    fecha_emision = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    fecha_completacion = db.Column(db.DateTime, nullable=True)
+
+    # Claves foráneas
+    caso_id = db.Column(db.Integer, db.ForeignKey('casos.id'), nullable=False)
+    asignado_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
