@@ -50,7 +50,7 @@ def nuevoReporte():
       
       estudiantes = pagination.items
 
-      return render_template('shared_components/search_students.html',
+      return render_template('shared_components/reportar_incidente_lista.html',
                             EstudianteCurso_todos=estudiantes,
                             Cursos=query_cursos,
                             pagination=pagination,
