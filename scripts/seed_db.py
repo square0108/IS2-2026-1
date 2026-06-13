@@ -44,7 +44,15 @@ with app.app_context():
         Estudiante(rut="55555555-5", nombre_completo="Sofía Riquelme", curso=c2),
         Estudiante(rut="66666666-6", nombre_completo="Joaquín Silva", curso=c3),
         Estudiante(rut="77777777-7", nombre_completo="Camila Castro", curso=c3),
-        Estudiante(rut="88888888-8", nombre_completo="Benjamín Rojas", curso=c3)
+        Estudiante(rut="88888888-8", nombre_completo="Benjamín Rojas", curso=c3),
+        Estudiante(rut="88888838-2", nombre_completo="Benjamín Rodriguez", curso=c3),
+        Estudiante(rut="99999991-1", nombre_completo="Valentina Fuentes", curso=c3),
+        Estudiante(rut="88888888-6", nombre_completo="Benjamín Rojas", curso=c3),
+        Estudiante(rut="99999999-5", nombre_completo="Valentina Fuente", curso=c3),
+        Estudiante(rut="88888888-3", nombre_completo="Benjamín Amarillo", curso=c3),
+        Estudiante(rut="88888888-2", nombre_completo="Eduardo Parra", curso=c1),
+        Estudiante(rut="88888888-1", nombre_completo="Eduardo Roldan", curso=c3),
+        Estudiante(rut="88284888-8", nombre_completo="Benjamín Vega", curso=c3)
     ]
 
     db.session.add_all([u1, u2, u3, u4, c1, c2, c3] + estudiantes)

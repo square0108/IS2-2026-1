@@ -30,13 +30,32 @@ def nuevoReporte():
 
       q = request.args.get('q')
       curso = request.args.get('curso')
-      estudiantes = ejecutar_consulta("buscar_estudiantes", {"q": q, "curso": curso, "raw": True})
-
+      page = request.args.get('page', 1, type=int)
+      
+      # Construir query con filtros
+      query = Estudiante.query.join(Curso)
+      
+      if curso:
+          query = query.filter(Curso.nombre == curso)
+      
+      if q:
+          like_q = f"%{q}%"
+          query = query.filter(Estudiante.nombre_completo.ilike(like_q))
+      
+      # Aplicar paginación: 10 estudiantes por página
+      pagination = query.order_by(
+          Estudiante.nombre_completo.asc(),
+          Curso.nombre.asc()
+      ).paginate(page=page, per_page=10, error_out=False)
+      
+      estudiantes = pagination.items
 
       return render_template('shared_components/search_students.html',
                             EstudianteCurso_todos=estudiantes,
-                            Cursos=query_cursos
-                            ) # TODO: cambiar para que muestre entradas por páginas
+                            Cursos=query_cursos,
+                            pagination=pagination,
+                            q=q,
+                            curso=curso)
   
   ## --- POST --- #
   elif request.method == "POST":
@@ -82,13 +101,19 @@ def misReportes():
     # Identificar al usuario activo en la sesión
     usuario_actual = session.get('user_id')
     
+    # Obtener número de página desde parámetros GET (por defecto 1)
+    page = request.args.get('page', 1, type=int)
+    
     # Consultar a la BD filtrando por el creador y ordenando por los más recientes primero
-    incidentes_del_usuario = (
+    # Usar paginación: 10 incidentes por página
+    pagination = (
         Incidente.query
         .filter_by(creador_id=usuario_actual)
         .order_by(Incidente.fecha_adicion.desc())
-        .all()
+        .paginate(page=page, per_page=10, error_out=False)
     )
     
-    # Renderizar el nuevo template pasándole la lista de incidentes
-    return render_template('shared_components/mis_reportes.html', incidentes=incidentes_del_usuario)
+    incidentes = pagination.items
+    
+    # Renderizar el nuevo template pasándole la lista de incidentes y la paginación
+    return render_template('shared_components/mis_reportes.html', incidentes=incidentes, pagination=pagination)
