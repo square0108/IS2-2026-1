@@ -29,6 +29,13 @@ with app.app_context():
     u4 = Usuario(username="roberto.convivencia", nombre_completo="Roberto Convivencia", es_encargado=True)
     u4.set_password("1234")
 
+    # Orientadores.
+    u5 = Usuario(username="camilo.orientador", nombre_completo="Camilo Orientador",es_orientador=True)
+    u5.set_password("1234")
+    u6 = Usuario(username="alexis.orientador", nombre_completo="Alexis Orientador",es_orientador=True)
+    u6.set_password("1234")
+
+
     # ==========================
     # 2. CREACIÓN DE CURSOS Y ALUMNOS
     # ==========================
@@ -55,7 +62,7 @@ with app.app_context():
         Estudiante(rut="88284888-8", nombre_completo="Benjamín Vega", curso=c3)
     ]
 
-    db.session.add_all([u1, u2, u3, u4, c1, c2, c3] + estudiantes)
+    db.session.add_all([u1, u2, u3, u4, u5, u6, c1, c2, c3] + estudiantes)
     db.session.commit() # Guardamos para que obtengan sus IDs
 
     # ==========================
