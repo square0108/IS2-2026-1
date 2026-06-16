@@ -69,5 +69,54 @@
             {% endif %}
         </div>
     </div>
+
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-warning">
+            <h5 class="mb-0">Acciones de seguimiento</h5>
+        </div>
+
+        <div class="card-body">
+            {% if caso.acciones %}
+                <ul class="list-group mb-4">
+                    {% for accion in caso.acciones %}
+                        <li class="list-group-item">
+                            <strong>{{ accion.descripcion }}</strong>
+                            <br>
+                            Responsable: {{ accion.asignado.nombre_completo }}
+                            <br>
+                            Estado: {{ accion.estado }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No existen acciones asociadas a este caso.</p>
+            {% endif %}
+
+            <hr>
+
+            <h6>Nueva acción</h6>
+
+            <form method="POST" action="{{ url_for('encargado_de_convivencia.crearAccion', caso_id=caso.id) }}">
+                <div class="mb-3">
+                    <label class="form-label">Descripción</label>
+                    <textarea class="form-control" name="descripcion" rows="3" required></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Asignar a</label>
+                    <select class="form-select" name="asignado_id" required>
+                        {% for usuario in responsables %}
+                            <option value="{{ usuario.id }}">{{ usuario.nombre_completo }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-warning">Crear acción</button>
+            </form>
+        </div>
+    </div>
+
+
 </div>
+
 {% endblock %}
