@@ -1,11 +1,15 @@
 import sys
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 # Añadimos la raíz para reconocer el módulo 'app'
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from app import create_app
-from app.db_model import db, Usuario, Curso, Estudiante, Incidente, Caso
+from app.db_model import (
+    db, Usuario, Curso, Estudiante, 
+    Incidente, Diagnostico, Observacion, 
+    Caso, Accion
+)
 
 app = create_app()
 
@@ -17,24 +21,18 @@ with app.app_context():
     # ==========================
     # 1. CREACIÓN DE USUARIOS
     # ==========================
-    # Reportadores (Profesores/Inspectores)
     u1 = Usuario(username="luis.profesor", nombre_completo="Luis Profesor", es_reportador=True)
     u1.set_password("123")
     u2 = Usuario(username="carmen.inspectora", nombre_completo="Carmen Inspectora", es_reportador=True)
     u2.set_password("123")
 
-    # Encargados de Convivencia
     u3 = Usuario(username="ana.directora", nombre_completo="Ana Directora", es_encargado=True)
     u3.set_password("1234")
     u4 = Usuario(username="roberto.convivencia", nombre_completo="Roberto Convivencia", es_encargado=True)
     u4.set_password("1234")
 
-    # Orientadores.
-    u5 = Usuario(username="camilo.orientador", nombre_completo="Camilo Orientador",es_orientador=True)
+    u5 = Usuario(username="marta.psicologa", nombre_completo="Marta Psicóloga", es_orientador=True)
     u5.set_password("1234")
-    u6 = Usuario(username="alexis.orientador", nombre_completo="Alexis Orientador",es_orientador=True)
-    u6.set_password("1234")
-
 
     # ==========================
     # 2. CREACIÓN DE CURSOS Y ALUMNOS
@@ -51,82 +49,114 @@ with app.app_context():
         Estudiante(rut="55555555-5", nombre_completo="Sofía Riquelme", curso=c2),
         Estudiante(rut="66666666-6", nombre_completo="Joaquín Silva", curso=c3),
         Estudiante(rut="77777777-7", nombre_completo="Camila Castro", curso=c3),
-        Estudiante(rut="88888888-8", nombre_completo="Benjamín Rojas", curso=c3)
+        Estudiante(rut="88888888-8", nombre_completo="Benjamín Rojas", curso=c3),
+        Estudiante(rut="88888838-2", nombre_completo="Benjamín Rodriguez", curso=c3),
+        Estudiante(rut="99999991-1", nombre_completo="Valentina Fuentes", curso=c3),
+        Estudiante(rut="88888888-6", nombre_completo="Benjamín Rojas", curso=c3),
+        Estudiante(rut="99999999-5", nombre_completo="Valentina Fuente", curso=c3),
+        Estudiante(rut="88888888-3", nombre_completo="Benjamín Amarillo", curso=c3),
+        Estudiante(rut="88888888-2", nombre_completo="Eduardo Parra", curso=c1),
+        Estudiante(rut="88888888-1", nombre_completo="Eduardo Roldan", curso=c3),
+        Estudiante(rut="88284888-8", nombre_completo="Benjamín Vega", curso=c3)
     ]
 
-    db.session.add_all([u1, u2, u3, u4, u5, u6, c1, c2, c3] + estudiantes)
-    db.session.commit() # Guardamos para que obtengan sus IDs
+    db.session.add_all([u1, u2, u3, u4, u5, c1, c2, c3] + estudiantes)
+    db.session.commit()
 
     # ==========================
-    # 3. CREACIÓN DE INCIDENTES
+    # 3. CREACIÓN DE ANTECEDENTES
     # ==========================
-    # Incidente 1: Físico, reportado por Luis (1 Medio A)
+    # --- Incidentes ---
     inc1 = Incidente(
         descripcion="Juan Pérez empujó a Pedro Gómez durante el recreo.",
         respuesta_inmediata="Se separó a los estudiantes y se dialogó con ambos.",
         categoria="Físico",
         estudiantes=[estudiantes[0], estudiantes[1]],
         creador=u1,
-        fecha_adicion=datetime.utcnow() - timedelta(days=5)
+        fecha_adicion=datetime.now(timezone.utc) - timedelta(days=5)
     )
 
-    # Incidente 2: Verbal, reportado por Carmen (2 Medio B)
     inc2 = Incidente(
         descripcion="Discusión fuerte en sala de clases entre María y Sofía por un trabajo grupal.",
         respuesta_inmediata="Se calmó la situación y se asignó mediación.",
         categoria="Verbal",
         estudiantes=[estudiantes[3], estudiantes[4]],
         creador=u2,
-        fecha_adicion=datetime.utcnow() - timedelta(days=3)
+        fecha_adicion=datetime.now(timezone.utc) - timedelta(days=3)
     )
 
-    # Incidente 3: Cyberbullying, reportado por Ana Directora (1 Medio A)
     inc3 = Incidente(
         descripcion="Diego envió mensajes ofensivos a Juan a través de redes sociales.",
         respuesta_inmediata="Se citó a los apoderados de ambos alumnos.",
         categoria="Ciberacoso",
         estudiantes=[estudiantes[0], estudiantes[2]],
         creador=u3,
-        fecha_adicion=datetime.utcnow() - timedelta(days=2)
+        fecha_adicion=datetime.now(timezone.utc) - timedelta(days=2)
     )
 
-    # Incidente 4: Físico, reportado por Roberto (3 Medio A)
-    inc4 = Incidente(
-        descripcion="Camila y Benjamín pelearon en la entrada del colegio.",
-        respuesta_inmediata="Intervención inmediata y citación a inspectoría.",
-        categoria="Físico",
-        estudiantes=[estudiantes[6], estudiantes[7]],
-        creador=u4,
-        fecha_adicion=datetime.utcnow() - timedelta(days=1)
+    # --- Diagnósticos ---
+    diag1 = Diagnostico(
+        descripcion="Estudiante presenta indicios de TDAH. Derivado a evaluación neurológica externa.",
+        estudiantes=[estudiantes[0]], # Solo 1 estudiante según regla de negocio
+        creador=u5,
+        fecha_adicion=datetime.now(timezone.utc) - timedelta(days=10)
     )
 
-    db.session.add_all([inc1, inc2, inc3, inc4])
+    # --- Observaciones ---
+    obs1 = Observacion(
+        descripcion="Durante la clase de matemáticas, Sofía se mostró inusualmente retraída y no quiso participar.",
+        estudiantes=[estudiantes[4]],
+        creador=u5,
+        fecha_adicion=datetime.now(timezone.utc) - timedelta(days=4)
+    )
+
+    db.session.add_all([inc1, inc2, inc3, diag1, obs1])
     db.session.commit()
 
     # ==========================
     # 4. CREACIÓN DE CASOS
     # ==========================
-    # Caso 1: Gestionado por Ana Directora (Involucra a Juan, Pedro y Diego de 1MA)
     caso1 = Caso(
         nombre="Conflictos reiterados 1 Medio A",
         encargado=u3,
         estado="ABIERTO",
-        fecha_creacion=datetime.utcnow() - timedelta(days=1)
+        fecha_creacion=datetime.now(timezone.utc) - timedelta(days=1)
     )
-    # Vinculamos incidentes 1 y 3 a este caso
-    caso1.evidencias.extend([inc1, inc3])
+    caso1.evidencias.extend([inc1, inc3, diag1]) # Incluye un diagnóstico en la evidencia
 
-    # Caso 2: Gestionado por Roberto Convivencia (Involucra a María y Sofía)
     caso2 = Caso(
         nombre="Disputa académica 2 Medio B",
         encargado=u4,
         estado="RESUELTO",
-        fecha_creacion=datetime.utcnow() - timedelta(days=2)
+        fecha_creacion=datetime.now(timezone.utc) - timedelta(days=2)
     )
-    # Vinculamos incidente 2
-    caso2.evidencias.append(inc2)
+    caso2.evidencias.extend([inc2, obs1]) # Incluye una observación en la evidencia
 
     db.session.add_all([caso1, caso2])
     db.session.commit()
 
-    print("Base de datos poblada exitosamente.")
+    # ==========================
+    # 5. CREACIÓN DE ACCIONES
+    # ==========================
+    acc1 = Accion(
+        descripcion="Entrevistar a Diego López para indagar motivos del ciberacoso y estado emocional.",
+        estado="PENDIENTE",
+        caso=caso1,
+        asignado=u5,
+        fecha_emision=datetime.now(timezone.utc) - timedelta(days=1)
+    )
+
+    acc2 = Accion(
+        descripcion="Observar dinámica entre María y Sofía durante el trabajo en aula.",
+        resultado="Ambas alumnas lograron trabajar juntas sin fricciones. Se da por superado el conflicto.",
+        estado="COMPLETADA",
+        caso=caso2,
+        asignado=u2,
+        fecha_emision=datetime.now(timezone.utc) - timedelta(days=2),
+        fecha_completacion=datetime.now(timezone.utc) - timedelta(days=1)
+    )
+
+    db.session.add_all([acc1, acc2])
+    db.session.commit()
+
+    print("✅ Base de datos poblada exitosamente con usuarios, antecedentes polimórficos, casos y acciones.")
