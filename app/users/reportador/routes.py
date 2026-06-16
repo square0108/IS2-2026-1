@@ -28,7 +28,7 @@ def nuevoReporte():
       # Para desplegar la lista de estudiantes y los cursos para filtrar
       query_cursos = Curso.query.order_by(Curso.nombre.asc()).all()
 
-      q = request.args.get('q')
+      busquedaNombreCurso = request.args.get('busqueda')
       curso = request.args.get('curso')
       page = request.args.get('page', 1, type=int)
       
@@ -38,8 +38,8 @@ def nuevoReporte():
       if curso:
           query = query.filter(Curso.nombre == curso)
       
-      if q:
-          like_q = f"%{q}%"
+      if busquedaNombreCurso:
+          like_q = f"%{busquedaNombreCurso}%"
           query = query.filter(Estudiante.nombre_completo.ilike(like_q))
       
       # Aplicar paginación: 10 estudiantes por página
@@ -54,7 +54,7 @@ def nuevoReporte():
                             EstudianteCurso_todos=estudiantes,
                             Cursos=query_cursos,
                             pagination=pagination,
-                            q=q,
+                            busqueda=busquedaNombreCurso,
                             curso=curso)
   
   ## --- POST --- #
