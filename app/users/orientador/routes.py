@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, session, request, flash, redirect, url_for
 from app.auth.login_required import login_required
-from app.db_model import db, Estudiante, Curso, Antecedente
+from app.db_model import db, Estudiante, Curso, Antecedente, Diagnostico, Observacion, Caso
 
 orientador = Blueprint('orientador', __name__)
 
@@ -10,9 +10,9 @@ def home():
     return render_template('orientador/orientador_home.html')
 
 
-@orientador.route('/listaEstudiantes', methods=["GET","POST"])
+@orientador.route('/registrarAntecedente', methods=["GET","POST"])
 @login_required("orientador")
-def listaEstudiantes():
+def registrarAntecedente():
     if request.method == "GET":
         # Despliegue de listas
         query_cursos = Curso.query.order_by(Curso.nombre.asc()).all()
@@ -39,30 +39,67 @@ def listaEstudiantes():
         
         estudiantes = pagination.items
 
-        return render_template('orientador/orientador_lista_estudiantes.html',
+        return render_template('shared_components/registrar_antecedente.html',
                                EstudianteCurso_todos=estudiantes,
                                Cursos=query_cursos,
                                pagination=pagination,
                                busqueda=busquedaNombreCurso,
                                curso=curso)
+    
     elif request.method == "POST":
-        # TODO: Registrar antecedentes a la BD.
-        # Args retornados por request:
-        """
-            'tipoAntecedente' : Uno de 'observacion' o 'diagnostico'
-            Si 'tipoAntecedente' == 'diagnostico', retorna:
-                'diagnosticoCondicion' : <str>
-                'diagnosticoDescripcion' : <str>
-            Si 'tipoAntecedente' == 'observacion', retorna:
-                'observacionDescripcion' == <str>
-            donde <str> es un user input escrito.
-        """
-        tipoAntecedente = request.form.get('tipoAntecedente')
-        if tipoAntecedente == 'diagnostico':
-            print(request.form.get('id_estudiantes_involucrados'))
-            print(request.form.get('diagnosticoCondicion'))
-            print(request.form.get('diagnosticoDescripcion'))
-        return redirect(url_for('orientador.listaEstudiantes'))
+        tipo_antecedente = request.form.get('tipoAntecedente')
+        descripcion = request.form.get('descripcion')
+        ids_estudiantes = request.form.getlist('id_estudiantes_involucrados')
+
+        # Validación de Seguridad
+        if tipo_antecedente not in ['diagnostico', 'observacion']:
+            flash("Tipo de registro no válido o sin permisos.", "danger")
+            return redirect(url_for('orientador.registrarAntecedente'))
+
+        # Validación Base
+        if not descripcion or len(ids_estudiantes) < 1:
+            flash("Error: Debe ingresar una descripción y seleccionar al menos a un estudiante.", "danger")
+            return redirect(url_for('orientador.registrarAntecedente'))
+
+        # Regla Fuerte: Diagnóstico = 1 estudiante (Protección Backend)
+        if tipo_antecedente == 'diagnostico' and len(ids_estudiantes) != 1:
+            flash("Error: Un diagnóstico debe estar asociado a exactamente un estudiante.", "danger")
+            return redirect(url_for('orientador.registrarAntecedente'))
+
+        estudiantes_involucrados = Estudiante.query.filter(Estudiante.id.in_(ids_estudiantes)).all()
+        nuevo_antecedente = None
+
+        # Bifurcación
+        if tipo_antecedente == 'diagnostico':
+            condicion = request.form.get('diagnosticoCondicion')
+            if not condicion:
+                flash("Error: Debe especificar la condición o diagnóstico.", "danger")
+                return redirect(url_for('orientador.registrarAntecedente'))
+                
+            nuevo_antecedente = Diagnostico(
+                descripcion=descripcion,
+                condicion=condicion,
+                estudiantes=estudiantes_involucrados,
+                creador_id=session.get('user_id')
+            )
+            
+        elif tipo_antecedente == 'observacion':
+            nuevo_antecedente = Observacion(
+                descripcion=descripcion,
+                estudiantes=estudiantes_involucrados,
+                creador_id=session.get('user_id')
+            )
+
+        try:
+            db.session.add(nuevo_antecedente)
+            db.session.commit()
+            flash("Registro guardado exitosamente", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash("Ocurrió un error al intentar registrar la información.", "danger")
+            print(f"Error al guardar: {e}")
+
+        return redirect(url_for('orientador.registrarAntecedente'))
 
 
 @orientador.route('/explorarIncidentes')

@@ -96,8 +96,9 @@ with app.app_context():
 
     # --- Diagnósticos ---
     diag1 = Diagnostico(
+        condicion="Posible TDAH",
         descripcion="Estudiante presenta indicios de TDAH. Derivado a evaluación neurológica externa.",
-        estudiantes=[estudiantes[0]], # Solo 1 estudiante según regla de negocio
+        estudiantes=[estudiantes[0]],
         creador=u5,
         fecha_adicion=datetime.now(timezone.utc) - timedelta(days=10)
     )

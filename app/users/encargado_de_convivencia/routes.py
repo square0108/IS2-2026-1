@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, session, request, flash, redirect, url_for
 from app.auth.login_required import login_required
-from app.db_model import db, Estudiante, Curso, Incidente, Caso, Antecedente
+from app.db_model import db, Estudiante, Curso, Incidente, Caso, Antecedente, Observacion
 from app.queries import ejecutar_consulta
 
 encargado = Blueprint('encargado_de_convivencia', __name__)
@@ -40,7 +40,7 @@ def nuevoReporte():
         
         estudiantes = pagination.items
 
-        return render_template('shared_components/reportar_incidente_lista.html',
+        return render_template('shared_components/registrar_antecedente.html',
                                EstudianteCurso_todos=estudiantes,
                                Cursos=query_cursos,
                                pagination=pagination,
@@ -48,35 +48,55 @@ def nuevoReporte():
                                curso=curso)
                                
     elif request.method == "POST":
-        categoria = request.form.get('categoria_incidente')
+        tipo_antecedente = request.form.get('tipoAntecedente')
         descripcion = request.form.get('descripcion')
-        respuesta_inmediata = request.form.get('respuesta_inmediata')
         ids_estudiantes = request.form.getlist('id_estudiantes_involucrados')
 
-        # Validación
-        if not categoria or not descripcion or len(ids_estudiantes) < 1:
-            flash("Error: Debe ingresar una descripción, una categoría y seleccionar al menos a un estudiante.", "danger")
+        # Validación de Seguridad
+        if tipo_antecedente not in ['incidente', 'observacion']:
+            flash("Tipo de registro no válido o sin permisos.", "danger")
+            return redirect(url_for('encargado_de_convivencia.nuevoReporte'))
+
+        # Validación Base
+        if not descripcion or len(ids_estudiantes) < 1:
+            flash("Error: Debe ingresar una descripción y seleccionar al menos a un estudiante.", "danger")
             return redirect(url_for('encargado_de_convivencia.nuevoReporte'))
 
         estudiantes_involucrados = Estudiante.query.filter(Estudiante.id.in_(ids_estudiantes)).all()
+        nuevo_antecedente = None
 
-        # Al registrar, el creador será el encargado que inició sesión
-        nuevo_incidente = Incidente(
-            descripcion=descripcion,
-            respuesta_inmediata=respuesta_inmediata,
-            categoria=categoria,
-            estudiantes=estudiantes_involucrados,
-            creador_id=session.get('user_id')  
-        )
+        # Bifurcación
+        if tipo_antecedente == 'incidente':
+            categoria = request.form.get('categoria_incidente')
+            respuesta_inmediata = request.form.get('respuesta_inmediata')
+            
+            if not categoria:
+                flash("Error: Debe seleccionar una categoría para el incidente.", "danger")
+                return redirect(url_for('encargado_de_convivencia.nuevoReporte'))
+                
+            nuevo_antecedente = Incidente(
+                descripcion=descripcion,
+                respuesta_inmediata=respuesta_inmediata,
+                categoria=categoria,
+                estudiantes=estudiantes_involucrados,
+                creador_id=session.get('user_id')
+            )
+            
+        elif tipo_antecedente == 'observacion':
+            nuevo_antecedente = Observacion(
+                descripcion=descripcion,
+                estudiantes=estudiantes_involucrados,
+                creador_id=session.get('user_id')
+            )
 
         try:
-            db.session.add(nuevo_incidente)
+            db.session.add(nuevo_antecedente)
             db.session.commit()
-            flash("Reporte registrado exitosamente", "success")
+            flash("Registro guardado exitosamente", "success")
         except Exception as e:
-            db.session.rollback() 
-            flash("Ocurrió un error de servidor al intentar registrar el reporte.", "danger")
-            print(f"Error al guardar el incidente: {e}") 
+            db.session.rollback()
+            flash("Ocurrió un error al intentar registrar la información.", "danger")
+            print(f"Error al guardar: {e}")
 
         return redirect(url_for('encargado_de_convivencia.nuevoReporte'))
 
