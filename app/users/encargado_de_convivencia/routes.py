@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, session, request, flash, redirect, url_for
 from app.auth.login_required import login_required
 from app.db_model import db, Estudiante, Curso, Incidente, Caso, Antecedente
-from app.queries import ejecutar_consulta
+from app.queries import ejecutar_consulta, buscar_incidentes
 
 encargado = Blueprint('encargado_de_convivencia', __name__)
 
@@ -86,22 +86,24 @@ def nuevoReporte():
 def explorarIncidentes():
     # Obtenemos el filtro por GET (si no existe, por defecto es 'todos')
     filtro = request.args.get('filtro', 'todos')
-    
+
     # Obtener número de página desde parámetros GET (por defecto 1)
     page = request.args.get('page', 1, type=int)
-    
-    # Consultamos exclusivamente los Incidentes
-    query = Incidente.query.order_by(Incidente.fecha_adicion.desc())
-    
-    # Aplicamos el filtro si el usuario quiere ver solo los suyos
-    if filtro == 'mios':
-        query = query.filter_by(creador_id=session.get('user_id'))
-    
+
+    # Término de búsqueda por nombre de estudiante involucrado
+    q = (request.args.get('q') or '').strip()
+
+    # Si el usuario quiere ver solo los suyos, filtramos por su id
+    creador_id = session.get('user_id') if filtro == 'mios' else None
+
+    # La lógica de la consulta vive en queries.py (capa de abstracción)
+    query = buscar_incidentes(q=q, creador_id=creador_id)
+
     # Usar paginación: 10 incidentes por página
     pagination = query.paginate(page=page, per_page=10, error_out=False)
     incidentes = pagination.items
-    
-    return render_template('encargado_de_convivencia/general_explorar_antecedentes.html', incidentes=incidentes, pagination=pagination, filtro=filtro)
+
+    return render_template('encargado_de_convivencia/general_explorar_antecedentes.html', incidentes=incidentes, pagination=pagination, filtro=filtro, q=q)
 
 
 @encargado.route('/nuevoCaso', methods=["GET", "POST"])
