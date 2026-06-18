@@ -18,7 +18,7 @@ def nuevoReporte():
         # Despliegue de listas
         query_cursos = Curso.query.order_by(Curso.nombre.asc()).all()
 
-        q = request.args.get('q')
+        busquedaNombreCurso = request.args.get('busqueda')
         curso = request.args.get('curso')
         page = request.args.get('page', 1, type=int)
         
@@ -28,8 +28,8 @@ def nuevoReporte():
         if curso:
             query = query.filter(Curso.nombre == curso)
         
-        if q:
-            like_q = f"%{q}%"
+        if busquedaNombreCurso:
+            like_q = f"%{busquedaNombreCurso}%"
             query = query.filter(Estudiante.nombre_completo.ilike(like_q))
         
         # Aplicar paginación: 10 estudiantes por página
@@ -40,43 +40,63 @@ def nuevoReporte():
         
         estudiantes = pagination.items
 
-        return render_template('shared_components/search_students.html',
+        return render_template('shared_components/registrar_antecedente.html',
                                EstudianteCurso_todos=estudiantes,
                                Cursos=query_cursos,
                                pagination=pagination,
-                               q=q,
+                               busqueda=busquedaNombreCurso,
                                curso=curso)
                                
     elif request.method == "POST":
-        categoria = request.form.get('categoria_incidente')
+        tipo_antecedente = request.form.get('tipoAntecedente')
         descripcion = request.form.get('descripcion')
-        respuesta_inmediata = request.form.get('respuesta_inmediata')
         ids_estudiantes = request.form.getlist('id_estudiantes_involucrados')
 
-        # Validación
-        if not categoria or not descripcion or len(ids_estudiantes) < 1:
-            flash("Error: Debe ingresar una descripción, una categoría y seleccionar al menos a un estudiante.", "danger")
+        # Validación de Seguridad
+        if tipo_antecedente not in ['incidente', 'observacion']:
+            flash("Tipo de registro no válido o sin permisos.", "danger")
+            return redirect(url_for('encargado_de_convivencia.nuevoReporte'))
+
+        # Validación Base
+        if not descripcion or len(ids_estudiantes) < 1:
+            flash("Error: Debe ingresar una descripción y seleccionar al menos a un estudiante.", "danger")
             return redirect(url_for('encargado_de_convivencia.nuevoReporte'))
 
         estudiantes_involucrados = Estudiante.query.filter(Estudiante.id.in_(ids_estudiantes)).all()
+        nuevo_antecedente = None
 
-        # Al registrar, el creador será el encargado que inició sesión
-        nuevo_incidente = Incidente(
-            descripcion=descripcion,
-            respuesta_inmediata=respuesta_inmediata,
-            categoria=categoria,
-            estudiantes=estudiantes_involucrados,
-            creador_id=session.get('user_id')  
-        )
+        # Bifurcación
+        if tipo_antecedente == 'incidente':
+            categoria = request.form.get('categoria_incidente')
+            respuesta_inmediata = request.form.get('respuesta_inmediata')
+            
+            if not categoria:
+                flash("Error: Debe seleccionar una categoría para el incidente.", "danger")
+                return redirect(url_for('encargado_de_convivencia.nuevoReporte'))
+                
+            nuevo_antecedente = Incidente(
+                descripcion=descripcion,
+                respuesta_inmediata=respuesta_inmediata,
+                categoria=categoria,
+                estudiantes=estudiantes_involucrados,
+                creador_id=session.get('user_id')
+            )
+            
+        elif tipo_antecedente == 'observacion':
+            nuevo_antecedente = Observacion(
+                descripcion=descripcion,
+                estudiantes=estudiantes_involucrados,
+                creador_id=session.get('user_id')
+            )
 
         try:
-            db.session.add(nuevo_incidente)
+            db.session.add(nuevo_antecedente)
             db.session.commit()
-            flash("Reporte registrado exitosamente", "success")
+            flash("Registro guardado exitosamente", "success")
         except Exception as e:
-            db.session.rollback() 
-            flash("Ocurrió un error de servidor al intentar registrar el reporte.", "danger")
-            print(f"Error al guardar el incidente: {e}") 
+            db.session.rollback()
+            flash("Ocurrió un error al intentar registrar la información.", "danger")
+            print(f"Error al guardar: {e}")
 
         return redirect(url_for('encargado_de_convivencia.nuevoReporte'))
 

@@ -1,0 +1,123 @@
+<!-- IMPORTANTE: Los botones (+) para añadir estudiantes no se renderizarán por defecto. -->
+<!-- Para renderizarlos, setear {% set showAddEstudianteButton = True %} en tu template que incluya esta. -->
+<!-- Variables Jinja requeridas:
+    - Cursos: Query a BD con todos los cursos del colegio
+    - EstudianteCurso_todos: Conjunto de todos los pares {estudiante, curso}
+    - pagination: Pares Estudiante y Curso paginados con sqlalchemy en grupos de 10.
+    - busqueda: Parámetro de búsqueda, nombre o apellido que envía el usuario
+    - curso: Parámetro de búsqueda, curso escogido por el usuario. Por defecto no hay filtro (se muestran todos los cursos).
+-->
+<div class="card p-4 shadow-sm mb-4">
+
+    <h5 class="mb-3">Buscador de estudiantes</h5>
+
+    <form class="row gx-2">
+        <div class="col-md-5 mb-2">
+            <input type="text" class="form-control" name="busqueda" placeholder="Nombre o apellido">
+        </div>
+
+        <div class="col-md-4 mb-2">
+            <select class="form-select" name="curso">
+                <option value="" selected>Seleccionar curso</option>
+                {% for curso in Cursos %}
+                    <option value="{{ curso.nombre }}">{{ curso.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-3 mb-2">
+            <button type="submit" class="btn btn-primary w-100">Buscar</button>
+        </div>
+    </form>
+</div>
+
+<!-- Tabla con un estudiante en cada entrada. TODO: agregar despliegue por páginas en lugar de todos a la vez -->
+<div class="card shadow-sm">
+    <div class="card-body">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 50px;"></th>
+                    <th>Nombre completo</th>
+                    <th>Curso</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for estudiante in EstudianteCurso_todos %}
+                <tr>
+                    <td>
+                        <!-- Muestra un botón (+) al lado de cada entrada. Puede utilizarse en otras vistas para agrupar estudiantes. -->
+                        {% if showAddEstudianteButton %}
+                        <button type="button" class="btn btn-sm btn-outline-success" 
+                                onclick="addInvolucrado('{{ estudiante.id }}', '{{ estudiante.nombre_completo }}')">
+                            +
+                        </button>
+                        {% endif %}
+                    </td>
+                    <!-- Ir al expediente -->
+                    <td>
+                        {{ estudiante.nombre_completo }}
+                        {% if session.get('user_type') == 'encargado_de_convivencia' %}
+                            <a href="{{ url_for('encargado_de_convivencia.expedienteEstudiante', estudiante_id=estudiante.id) }}" 
+                                class="text-decoration-none ms-2" 
+                                title="Ver expediente del estudiante">🔍</a>
+                        {% endif %}
+                    </td>
+                    <td>{{ estudiante.curso.nombre }}</td>
+                </tr>   
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- CONTROLES DE PAGINACIÓN -->
+    {% if pagination and pagination.pages > 1 %}
+    <nav class="mt-4" aria-label="Navegación de estudiantes">
+        <ul class="pagination justify-content-center">
+            <!-- Botón Anterior -->
+            {% if pagination.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="?q={{ busqueda or '' }}&curso={{ curso or '' }}&page={{ pagination.prev_num }}">← Anterior</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">← Anterior</span>
+                </li>
+            {% endif %}
+
+            <!-- Números de página -->
+            {% for page_num in pagination.iter_pages(left_edge=1, left_current=1, right_current=2, right_edge=1) %}
+                {% if page_num %}
+                    {% if page_num == pagination.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?q={{ busqueda or '' }}&curso={{ curso or '' }}&page={{ page_num }}">{{ page_num }}</a>
+                        </li>
+                    {% endif %}
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            <!-- Botón Siguiente -->
+            {% if pagination.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?q={{ busqueda or '' }}&curso={{ curso or '' }}&page={{ pagination.next_num }}">Siguiente →</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Siguiente →</span>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    <div class="text-center text-muted mb-4">
+        <small>Página {{ pagination.page }} de {{ pagination.pages }} ({{ pagination.total }} estudiantes)</small>
+    </div>
+    {% endif %}
+</div>

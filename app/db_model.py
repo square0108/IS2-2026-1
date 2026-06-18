@@ -88,6 +88,7 @@ class Incidente(Antecedente):
     __mapper_args__ = {'polymorphic_identity': 'INCIDENTE'}
 
 class Diagnostico(Antecedente):
+    condicion = db.Column(db.String(255), nullable=True)
     __mapper_args__ = {'polymorphic_identity': 'DIAGNOSTICO'}
 
 class Observacion(Antecedente):
