@@ -12,12 +12,25 @@
     <!-- Filtros de Autoría -->
     <ul class="nav nav-pills mb-4">
         <li class="nav-item">
-            <a class="nav-link {% if filtro == 'todos' %}active{% endif %}" href="{{ url_for('encargado_de_convivencia.explorarIncidentes', filtro='todos') }}">Todos los incidentes</a>
+            <a class="nav-link {% if filtro == 'todos' %}active{% endif %}" href="{{ url_for('encargado_de_convivencia.explorarIncidentes', filtro='todos', q=q) }}">Todos los incidentes</a>
         </li>
         <li class="nav-item ms-2">
-            <a class="nav-link {% if filtro == 'mios' %}active{% endif %}" href="{{ url_for('encargado_de_convivencia.explorarIncidentes', filtro='mios') }}">Mis reportes</a>
+            <a class="nav-link {% if filtro == 'mios' %}active{% endif %}" href="{{ url_for('encargado_de_convivencia.explorarIncidentes', filtro='mios', q=q) }}">Mis reportes</a>
         </li>
     </ul>
+
+    <!-- Buscador por nombre de estudiante -->
+    <form method="GET" action="{{ url_for('encargado_de_convivencia.explorarIncidentes') }}" class="mb-4">
+        <input type="hidden" name="filtro" value="{{ filtro }}">
+        <div class="input-group">
+            <input type="text" class="form-control" name="q" value="{{ q or '' }}"
+                   placeholder="Buscar incidentes por nombre de estudiante involucrado...">
+            <button class="btn btn-primary" type="submit">Buscar</button>
+            {% if q %}
+                <a class="btn btn-outline-secondary" href="{{ url_for('encargado_de_convivencia.explorarIncidentes', filtro=filtro) }}">Limpiar</a>
+            {% endif %}
+        </div>
+    </form>
 
     <!-- El formulario envuelve la tabla y apunta a la creación de casos -->
     <form method="POST" action="{{ url_for('encargado_de_convivencia.nuevoCaso') }}">
@@ -95,7 +108,7 @@
             <!-- Botón Anterior -->
             {% if pagination.has_prev %}
                 <li class="page-item">
-                    <a class="page-link" href="{{ url_for('encargado_de_convivencia.explorarIncidentes', filtro=filtro, page=pagination.prev_num) }}">← Anterior</a>
+                    <a class="page-link" href="{{ url_for('encargado_de_convivencia.explorarIncidentes', filtro=filtro, q=q, page=pagination.prev_num) }}">← Anterior</a>
                 </li>
             {% else %}
                 <li class="page-item disabled">
@@ -112,7 +125,7 @@
                         </li>
                     {% else %}
                         <li class="page-item">
-                            <a class="page-link" href="{{ url_for('encargado_de_convivencia.explorarIncidentes', filtro=filtro, page=page_num) }}">{{ page_num }}</a>
+                            <a class="page-link" href="{{ url_for('encargado_de_convivencia.explorarIncidentes', filtro=filtro, q=q, page=page_num) }}">{{ page_num }}</a>
                         </li>
                     {% endif %}
                 {% else %}
@@ -125,7 +138,7 @@
             <!-- Botón Siguiente -->
             {% if pagination.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="{{ url_for('encargado_de_convivencia.explorarIncidentes', filtro=filtro, page=pagination.next_num) }}">Siguiente →</a>
+                    <a class="page-link" href="{{ url_for('encargado_de_convivencia.explorarIncidentes', filtro=filtro, q=q, page=pagination.next_num) }}">Siguiente →</a>
                 </li>
             {% else %}
                 <li class="page-item disabled">
