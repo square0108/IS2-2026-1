@@ -1,0 +1,1 @@
+En esta carpeta sólo irán archivos o material obsoleto para la versión actual del proyecto.
