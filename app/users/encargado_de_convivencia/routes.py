@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, session, request, flash, redirect, url_for
 from app.auth.login_required import login_required
-from app.db_model import db, Estudiante, Curso, Incidente, Caso, Antecedente, Observacion
+from app.db_model import db, Estudiante, Curso, Incidente, Caso, Antecedente, Observacion, Usuario, Accion
 from app.queries import ejecutar_consulta, buscar_incidentes
 
 encargado = Blueprint('encargado_de_convivencia', __name__)
@@ -232,8 +232,6 @@ def detalleCaso(caso_id):
 
     responsables = Usuario.query.filter(
         (Usuario.es_reportador == True)
-        |
-        (Usuario.es_orientador == True)
     ).all()
 
     return render_template(
