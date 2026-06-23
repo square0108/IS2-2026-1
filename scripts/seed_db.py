@@ -7,7 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from app import create_app
 from app.db_model import (
     db, Usuario, Curso, Estudiante, 
-    Incidente, Diagnostico, Observacion, 
+    Incidente, Observacion, 
     Caso, Accion
 )
 
@@ -31,8 +31,8 @@ with app.app_context():
     u4 = Usuario(username="roberto.convivencia", nombre_completo="Roberto Convivencia", es_encargado=True)
     u4.set_password("1234")
 
-    u5 = Usuario(username="marta.psicologa", nombre_completo="Marta Psicóloga", es_orientador=True)
-    u5.set_password("1234")
+    #u5 = Usuario(username="marta.psicologa", nombre_completo="Marta Psicóloga", es_orientador=True)
+    #u5.set_password("1234")
 
     # ==========================
     # 2. CREACIÓN DE CURSOS Y ALUMNOS
@@ -60,7 +60,7 @@ with app.app_context():
         Estudiante(rut="88284888-8", nombre_completo="Benjamín Vega", curso=c3)
     ]
 
-    db.session.add_all([u1, u2, u3, u4, u5, c1, c2, c3] + estudiantes)
+    db.session.add_all([u1, u2, u3, u4, c1, c2, c3] + estudiantes)
     db.session.commit()
 
     # ==========================
@@ -94,7 +94,8 @@ with app.app_context():
         fecha_adicion=datetime.now(timezone.utc) - timedelta(days=2)
     )
 
-    # --- Diagnósticos ---
+    # --- Diagnósticos. !! OBSOLETO !!---
+    """
     diag1 = Diagnostico(
         condicion="Posible TDAH",
         descripcion="Estudiante presenta indicios de TDAH. Derivado a evaluación neurológica externa.",
@@ -102,16 +103,19 @@ with app.app_context():
         creador=u5,
         fecha_adicion=datetime.now(timezone.utc) - timedelta(days=10)
     )
+    """
 
     # --- Observaciones ---
+    """
     obs1 = Observacion(
         descripcion="Durante la clase de matemáticas, Sofía se mostró inusualmente retraída y no quiso participar.",
         estudiantes=[estudiantes[4]],
         creador=u5,
         fecha_adicion=datetime.now(timezone.utc) - timedelta(days=4)
     )
+    """
 
-    db.session.add_all([inc1, inc2, inc3, diag1, obs1])
+    db.session.add_all([inc1, inc2, inc3])
     db.session.commit()
 
     # ==========================
@@ -123,7 +127,7 @@ with app.app_context():
         estado="ABIERTO",
         fecha_creacion=datetime.now(timezone.utc) - timedelta(days=1)
     )
-    caso1.evidencias.extend([inc1, inc3, diag1]) # Incluye un diagnóstico en la evidencia
+    caso1.evidencias.extend([inc1, inc3])
 
     caso2 = Caso(
         nombre="Disputa académica 2 Medio B",
@@ -131,7 +135,7 @@ with app.app_context():
         estado="RESUELTO",
         fecha_creacion=datetime.now(timezone.utc) - timedelta(days=2)
     )
-    caso2.evidencias.extend([inc2, obs1]) # Incluye una observación en la evidencia
+    caso2.evidencias.extend([inc2])
 
     db.session.add_all([caso1, caso2])
     db.session.commit()
@@ -139,6 +143,7 @@ with app.app_context():
     # ==========================
     # 5. CREACIÓN DE ACCIONES
     # ==========================
+    """
     acc1 = Accion(
         descripcion="Entrevistar a Diego López para indagar motivos del ciberacoso y estado emocional.",
         estado="PENDIENTE",
@@ -146,6 +151,7 @@ with app.app_context():
         asignado=u5,
         fecha_emision=datetime.now(timezone.utc) - timedelta(days=1)
     )
+    """
 
     acc2 = Accion(
         descripcion="Observar dinámica entre María y Sofía durante el trabajo en aula.",
@@ -157,7 +163,7 @@ with app.app_context():
         fecha_completacion=datetime.now(timezone.utc) - timedelta(days=1)
     )
 
-    db.session.add_all([acc1, acc2])
+    db.session.add_all([acc2])
     db.session.commit()
 
     print("✅ Base de datos poblada exitosamente con usuarios, antecedentes polimórficos, casos y acciones.")
