@@ -230,8 +230,67 @@ def detalleCaso(caso_id):
                 
         return redirect(url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id))
 
-    return render_template('encargado_de_convivencia/caso_detalles.html', caso=caso)
+    responsables = Usuario.query.filter(
+        (Usuario.es_reportador == True)
+        |
+        (Usuario.es_orientador == True)
+    ).all()
 
+    return render_template(
+        'encargado_de_convivencia/caso_detalles.html',
+        caso=caso,
+        responsables=responsables
+    )
+
+@encargado.route(
+    '/caso/<int:caso_id>/accion',
+    methods=["POST"]
+)
+@login_required("encargado_de_convivencia")
+def crearAccion(caso_id):
+
+    caso = Caso.query.get_or_404(caso_id)
+
+    if caso.encargado_id != session.get('user_id'):
+        flash(
+            "No tienes permiso.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                'encargado_de_convivencia.misCasos'
+            )
+        )
+
+    descripcion = request.form.get(
+        'descripcion'
+    )
+
+    asignado_id = request.form.get(
+        'asignado_id'
+    )
+
+    accion = Accion(
+        descripcion=descripcion,
+        asignado_id=asignado_id,
+        caso_id=caso.id
+    )
+
+    db.session.add(accion)
+    db.session.commit()
+
+    flash(
+        "Acción creada exitosamente.",
+        "success"
+    )
+
+    return redirect(
+        url_for(
+            'encargado_de_convivencia.detalleCaso',
+            caso_id=caso.id
+        )
+    )
 
 @encargado.route('/caso/<int:caso_id>/vincular', methods=["GET", "POST"])
 @login_required("encargado_de_convivencia")
