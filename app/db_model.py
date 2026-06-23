@@ -28,7 +28,7 @@ class Usuario(db.Model):
 
     es_reportador = db.Column(db.Boolean, default=False, nullable=False)
     es_encargado = db.Column(db.Boolean, default=False, nullable=False)
-    es_orientador = db.Column(db.Boolean, default=False, nullable=False)
+    # es_orientador = db.Column(db.Boolean, default=False, nullable=False)
     
     antecedentes_creados = db.relationship('Antecedente', backref='creador', lazy=True)
 
@@ -87,9 +87,12 @@ class Incidente(Antecedente):
     categoria = db.Column(db.Text, nullable=True)
     __mapper_args__ = {'polymorphic_identity': 'INCIDENTE'}
 
+"""
 class Diagnostico(Antecedente):
+    condicion = db.Column(db.String(255), nullable=True)
     __mapper_args__ = {'polymorphic_identity': 'DIAGNOSTICO'}
-
+"""
+    
 class Observacion(Antecedente):
     __mapper_args__ = {'polymorphic_identity': 'OBSERVACION'}
 

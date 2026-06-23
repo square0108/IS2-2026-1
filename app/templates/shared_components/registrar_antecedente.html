@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Registrar Antecedente{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Registrar Antecedente</h1>
+
+    <div class="row">
+        <div class="col-lg-6">
+            {% set showAddEstudianteButton = True %}
+            {% include "shared_components/buscar_estudiantes_lista.html" %}
+        </div>
+
+        <div class="col-lg-6">
+            
+            <div class="card shadow-sm border-primary mb-4">
+                <div class="card-header bg-primary text-white fw-bold d-flex justify-content-between align-items-center">
+                    <span>Estudiantes involucrados</span>
+                    <span id="contadorEstudiantes" class="badge bg-light text-primary">0</span>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush" id="involvedList">
+                        <li class="list-group-item text-muted text-center py-3" id="emptyListMsg">
+                            No hay estudiantes seleccionados
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <form method="POST" action="" id="antecedenteForm" class="antecedenteForm">
+                <div class="card shadow-sm p-4">
+                    <h5 class="mb-3">Detalles del Registro</h5>
+
+                    <div class="mb-4">
+                        <label for="tipoAntecedente" class="form-label fw-bold">Tipo de Registro</label>
+                        <select class="form-select" id="tipoAntecedente" name="tipoAntecedente" required>
+                            <option value="" selected disabled>Seleccione el tipo...</option>
+                            
+                            {% if session.get('user_type') == 'reportador' %}
+                                <option value="incidente">Incidente</option>
+                            {% endif %}
+                            
+                            {% if session.get('user_type') == 'encargado_de_convivencia' %}
+                                <option value="incidente">Incidente</option>
+                                <option value="observacion">Observación</option>
+                            {% endif %}
+                        </select>
+                        <small id="reglaEstudiantesHelper" class="text-muted mt-2 d-block"></small>
+                    </div>
+
+                    <div id="bloque-descripcion" style="display: none;">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold" id="labelDescripcion">Descripción</label>
+                            <textarea class="form-control" id="descripcionGeneral" name="descripcion" rows="4" required></textarea>
+                        </div>
+                    </div>
+
+                    <div id="bloque-incidente" class="formulario-dinamico" style="display: none;">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Categoría</label>
+                            <select class="form-select inputs-incidente" name="categoria_incidente">
+                                <option value="" selected disabled>Seleccione una categoría...</option>
+                                <option value="fisico">Físico</option>
+                                <option value="verbal">Verbal</option>
+                                <option value="ciberacoso">Ciberacoso</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Respuesta inmediata tomada</label>
+                            <textarea class="form-control inputs-incidente" name="respuesta_inmediata" rows="3" placeholder="¿Qué hizo en respuesta al incidente?"></textarea>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" id="btnSubmitForm" class="btn btn-primary btn-lg w-100" style="display: none;">Guardar Registro</button>
+                </div>
+            </form>
+        </div> 
+    </div>
+</div>
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/registro_dinamico.js') }}"></script>
+{% endblock %}
+{% endblock %}
