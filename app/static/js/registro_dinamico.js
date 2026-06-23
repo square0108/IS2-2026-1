@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
             bloque.style.display = 'none';
         });
 
-        document.querySelectorAll('.inputs-incidente, .inputs-diagnostico').forEach(input => {
+        document.querySelectorAll('.inputs-incidente').forEach(input => {
             input.removeAttribute('required');
         });
 
@@ -35,15 +35,18 @@ document.addEventListener('DOMContentLoaded', () => {
             
             helperText.innerText = "Registro de un evento puntual que afecta la convivencia escolar.";
             txtDescripcion.placeholder = "Describa el incidente (ej. Juan empujó a Pedro en el patio durante el recreo).";
-            
-        } else if (tipoSeleccionado === 'diagnostico') {
+        }
+        /*
+        else if (tipoSeleccionado === 'diagnostico') {
             document.getElementById('bloque-diagnostico').style.display = 'block';
             document.querySelectorAll('.inputs-diagnostico').forEach(i => i.setAttribute('required', 'true'));
             
             helperText.innerText = "Evaluación formal de una condición mental, conductual o de personalidad.";
             txtDescripcion.placeholder = "Describa los detalles o el razonamiento del diagnóstico.";
             
-        } else if (tipoSeleccionado === 'observacion') {
+        }
+        */
+        else if (tipoSeleccionado === 'observacion') {
             helperText.innerText = "Anotación sobre conductas, estado de ánimo o situaciones de interés general.";
             txtDescripcion.placeholder = "Describa la observación (ej. María se ha mostrado inusualmente retraída y no participa en clases).";
         }
@@ -57,12 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (selectedStudents.length === 0) {
             e.preventDefault();
             alert("Debe seleccionar al menos un estudiante involucrado.");
-            return;
-        }
-
-        // Medida de seguridad extra antes de enviar
-        if (tipoActual === 'diagnostico' && selectedStudents.length > 1) {
-            e.preventDefault();
             return;
         }
 
@@ -133,7 +130,7 @@ function renderInvolvedItem(studentId, studentName) {
     involvedList.appendChild(listItem);
 }
 
-// Función centralizada para evaluar reglas reactivamente
+// Función centralizada para evaluar reglas reactivamente. Tras hacer obsoleto a Diagnostico, no hace nada.
 function validarEstadoFormulario() {
     document.getElementById('contadorEstudiantes').innerText = selectedStudents.length;
     
@@ -142,6 +139,7 @@ function validarEstadoFormulario() {
     const warningDiagnostico = document.getElementById('diagnosticoWarning');
 
     // Revisar regla estricta del diagnóstico
+    /*
     if (tipoActual === 'diagnostico' && selectedStudents.length > 1) {
         warningDiagnostico.style.display = 'block';
         btnSubmit.disabled = true;
@@ -149,4 +147,5 @@ function validarEstadoFormulario() {
         warningDiagnostico.style.display = 'none';
         btnSubmit.disabled = false;
     }
+    */
 }

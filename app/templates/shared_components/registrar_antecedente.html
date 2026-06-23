@@ -26,9 +26,6 @@
                         </li>
                     </ul>
                 </div>
-                <div id="diagnosticoWarning" class="alert alert-danger m-3" style="display: none;">
-                    <strong>Atención:</strong> Un diagnóstico médico o psicológico debe estar asociado a una única persona. Por favor, elimine estudiantes de la lista para continuar.
-                </div>
             </div>
 
             <form method="POST" action="" id="antecedenteForm" class="antecedenteForm">
@@ -46,11 +43,6 @@
                             
                             {% if session.get('user_type') == 'encargado_de_convivencia' %}
                                 <option value="incidente">Incidente</option>
-                                <option value="observacion">Observación</option>
-                            {% endif %}
-                            
-                            {% if session.get('user_type') == 'orientador' %}
-                                <option value="diagnostico">Diagnóstico</option>
                                 <option value="observacion">Observación</option>
                             {% endif %}
                         </select>
@@ -79,14 +71,7 @@
                             <textarea class="form-control inputs-incidente" name="respuesta_inmediata" rows="3" placeholder="¿Qué hizo en respuesta al incidente?"></textarea>
                         </div>
                     </div>
-
-                    <div id="bloque-diagnostico" class="formulario-dinamico" style="display: none;">
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Condición Mental o Conductual</label>
-                            <textarea class="form-control inputs-diagnostico" name="diagnosticoCondicion" rows="2" placeholder="Ej: Indicios de TDAH"></textarea>
-                        </div>
-                    </div>
-
+                    
                     <button type="submit" id="btnSubmitForm" class="btn btn-primary btn-lg w-100" style="display: none;">Guardar Registro</button>
                 </div>
             </form>
