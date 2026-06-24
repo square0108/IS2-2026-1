@@ -5,22 +5,20 @@
 {%block content%}
 <div class="container">
     <div class="row g-3 my-4">
-        <div class="col-sm-6">
+        <div class="col-sm-4">
             <a href="{{url_for('reportador.nuevoReporte')}}" class="btn btn-primary btn-lg w-100 py-4 fs-5 fw-semibold shadow-sm d-flex flex-column align-items-center justify-content-center">
                 Reportar nuevo incidente
             </a>
         </div>
-        <div class="col-sm-6">
+        <div class="col-sm-4">
             <a href="{{url_for('reportador.misReportes')}}" class="btn btn-outline-secondary btn-lg w-100 py-4 fs-5 fw-semibold shadow-sm d-flex flex-column align-items-center justify-content-center">
                 Ver mis reportes
             </a>
         </div>
-        <div class="col-sm-6">
-    <a href="{{ url_for('reportador.misAcciones') }}"
-       class="btn btn-warning btn-lg w-100 py-4 fs-5 fw-semibold shadow-sm d-flex flex-column align-items-center justify-content-center">
-        Mis acciones
-    </a>
-</div>
+        <div class="col-sm-4">
+            <a href="{{ url_for('reportador.misAcciones') }}"
+            class="btn btn-warning btn-lg w-100 py-4 fs-5 fw-semibold shadow-sm d-flex flex-column align-items-center justify-content-center">
+                Mis acciones
             </a>
         </div>
     </div>
