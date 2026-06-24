@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %} Acción {% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <!-- título -->
+        <h2>Acción #{{ accion.id }}</h2>
+        <a href="{{ url_for('encargado_de_convivencia.misAcciones') }}" class="btn btn-outline-secondary">Volver a mis Acciones Asignadas</a>
+    </div>
+    
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            <p>
+                <strong>Descripción:</strong>
+                {{ accion.descripcion }}
+            </p>
+
+            <p>
+                <strong>Estado:</strong>
+                {{ accion.estado }}
+            </p>
+
+            <p>
+                <strong>Caso:</strong>
+                {{ accion.caso.nombre }}
+            </p>
+
+            {% if accion.estado == "PENDIENTE" %}
+
+            <form method="POST">
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Resultado
+                    </label>
+
+                    <textarea
+                        class="form-control"
+                        name="resultado"
+                        rows="4"
+                        required>
+                    </textarea>
+
+                </div>
+
+                <button
+                    type="submit"
+                    class="btn btn-success">
+
+                    Completar acción
+
+                </button>
+
+            </form>
+
+            {% else %}
+
+                <div class="alert alert-success">
+
+                    Acción completada.
+
+                    <hr>
+
+                    {{ accion.resultado }}
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -231,7 +231,8 @@ def detalleCaso(caso_id):
         return redirect(url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id))
 
     responsables = Usuario.query.filter(
-        (Usuario.es_reportador == True)
+        (Usuario.es_reportador == True) |
+        (Usuario.es_encargado == True)
     ).all()
 
     return render_template(
@@ -453,3 +454,54 @@ def verIncidente(incidente_id):
     # Usamos Antecedente para que la vista soporte cualquier tipo de registro en el futuro
     incidente = Antecedente.query.get_or_404(incidente_id)
     return render_template('encargado_de_convivencia/incidente_detalles.html', incidente=incidente)
+
+@encargado.route('/misAcciones')
+@login_required("encargado_de_convivencia")
+def misAcciones():
+
+    acciones = (
+        Accion.query
+        .filter_by(asignado_id=session.get('user_id'))
+        .order_by(Accion.fecha_emision.desc())
+        .all()
+    )
+
+    return render_template(
+        'encargado_de_convivencia/mis_acciones.html',
+        acciones=acciones
+    )
+
+@encargado.route('/accion/<int:accion_id>', methods=["GET", "POST"])
+@login_required("encargado_de_convivencia")
+def detalleAccion(accion_id):
+
+    accion = Accion.query.get_or_404(accion_id)
+
+    if accion.asignado_id != session.get('user_id'):
+        flash("No tienes permiso para acceder a esta acción.", "danger")
+        return redirect(url_for('encargado_de_convivencia.misAcciones'))
+
+    if request.method == "POST":
+
+        accion.resultado = request.form.get('resultado')
+        accion.estado = "COMPLETADA"
+
+        try:
+            db.session.commit()
+            flash("Acción completada exitosamente.", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash("Error al guardar la acción.", "danger")
+            print(e)
+
+        return redirect(
+            url_for(
+                'encargado_de_convivencia.detalleAccion',
+                accion_id=accion.id
+            )
+        )
+
+    return render_template(
+        'encargado_de_convivencia/detalle_accion.html',
+        accion=accion
+    )
