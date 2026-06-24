@@ -46,15 +46,10 @@ def create_app(test_config=None):
     from app.users.encargado_de_convivencia.routes import encargado
     app.register_blueprint(encargado, url_prefix='/encargado_de_convivencia')
 
-    from app.users.orientador.routes import orientador
-    app.register_blueprint(orientador, url_prefix='/orientador')
+    # from app.users.orientador.routes import orientador
+    # app.register_blueprint(orientador, url_prefix='/orientador')
 
-    from app.students.routes import students
-    app.register_blueprint(students)
-    
-    # a simple page that says hello
-    @app.route('/hello')
-    def hello():
-        return 'Hello, World!'
+    # from app.students.routes import students
+    # app.register_blueprint(students)
 
     return app

@@ -23,12 +23,8 @@ def signin():
             
             if queried_user.es_encargado:
                 session["user_type"] = "encargado_de_convivencia"
-                return redirect(url_for("encargado_de_convivencia.home")) # TODO
-                
-            elif queried_user.es_orientador:
-                session["user_type"] = "orientador"
-                return redirect(url_for("orientador.home")) # TODO
-                
+                return redirect(url_for("encargado_de_convivencia.home"))
+
             elif queried_user.es_reportador:
                 session["user_type"] = "reportador"
                 return redirect(url_for("reportador.home"))

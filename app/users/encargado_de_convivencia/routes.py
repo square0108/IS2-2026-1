@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, session, request, flash, redirect, url_for
 from app.auth.login_required import login_required
-from app.db_model import db, Estudiante, Curso, Incidente, Caso, Antecedente
+from app.db_model import db, Estudiante, Curso, Incidente, Caso, Antecedente, Observacion, Accion, Usuario
 from app.queries import ejecutar_consulta, buscar_incidentes
 
 encargado = Blueprint('encargado_de_convivencia', __name__)
@@ -230,8 +230,65 @@ def detalleCaso(caso_id):
                 
         return redirect(url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id))
 
-    return render_template('encargado_de_convivencia/caso_detalles.html', caso=caso)
+    responsables = Usuario.query.filter(
+        Usuario.es_reportador == True
+    ).all()
 
+    return render_template(
+        'encargado_de_convivencia/caso_detalles.html',
+        caso=caso,
+        responsables=responsables
+    )
+
+@encargado.route(
+    '/caso/<int:caso_id>/accion',
+    methods=["POST"]
+)
+@login_required("encargado_de_convivencia")
+def crearAccion(caso_id):
+
+    caso = Caso.query.get_or_404(caso_id)
+
+    if caso.encargado_id != session.get('user_id'):
+        flash(
+            "No tienes permiso.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                'encargado_de_convivencia.misCasos'
+            )
+        )
+
+    descripcion = request.form.get(
+        'descripcion'
+    )
+
+    asignado_id = request.form.get(
+        'asignado_id'
+    )
+
+    accion = Accion(
+        descripcion=descripcion,
+        asignado_id=asignado_id,
+        caso_id=caso.id
+    )
+
+    db.session.add(accion)
+    db.session.commit()
+
+    flash(
+        "Acción creada exitosamente.",
+        "success"
+    )
+
+    return redirect(
+        url_for(
+            'encargado_de_convivencia.detalleCaso',
+            caso_id=caso.id
+        )
+    )
 
 @encargado.route('/caso/<int:caso_id>/vincular', methods=["GET", "POST"])
 @login_required("encargado_de_convivencia")
