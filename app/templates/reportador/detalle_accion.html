@@ -6,8 +6,12 @@
 
 <div class="container mt-5">
 
-    <h2>Acción #{{ accion.id }}</h2>
-
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <!-- título -->
+        <h2>Acción #{{ accion.id }}</h2>
+        <a href="{{ url_for('reportador.misAcciones') }}" class="btn btn-outline-secondary">Volver a mis Acciones Asignadas</a>
+    </div>
+    
     <div class="card shadow-sm">
 
         <div class="card-body">
