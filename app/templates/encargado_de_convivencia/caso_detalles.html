@@ -71,7 +71,7 @@
     </div>
 
     <div class="card shadow-sm mt-4">
-        <div class="card-header bg-warning text-dark">
+        <div class="card-header bg-warning">
             <h5 class="mb-0">Acciones de seguimiento</h5>
         </div>
 
@@ -79,78 +79,17 @@
             {% if caso.acciones %}
                 <ul class="list-group mb-4">
                     {% for accion in caso.acciones %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>{{ accion.descripcion }}</strong>
-                                <br>
-                                <small class="text-muted">
-                                    Responsable: {{ accion.asignado.nombre_completo }} | Estado: 
-                                    <span class="badge {% if accion.estado == 'PENDIENTE' %}bg-warning text-dark{% else %}bg-success{% endif %}">
-                                        {{ accion.estado }}
-                                    </span>
-                                </small>
-                            </div>
-                            
-                            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalAccion{{ accion.id }}">
-                                <i class="bi bi-eye"></i> Detalles de modificación
-                            </button>
+                        <li class="list-group-item">
+                            <strong>{{ accion.descripcion }}</strong>
+                            <br>
+                            Responsable: {{ accion.asignado.nombre_completo }}
+                            <br>
+                            Estado: {{ accion.estado }}
                         </li>
-
-                        <div class="modal fade" id="modalAccion{{ accion.id }}" tabindex="-1" aria-labelledby="modalLabel{{ accion.id }}" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="modalLabel{{ accion.id }}">Detalle de la Acción</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body p-4">
-                                        <div class="d-flex justify-content-between align-items-start mb-3">
-                                            <div>
-                                                <h6 class="mb-1" style="font-weight: 600; color: #374151;">
-                                                    {{ accion.asignado.nombre_completo }}
-                                                </h6>
-                                                <span class="badge {% if accion.estado == 'PENDIENTE' %}bg-warning text-dark{% else %}bg-success{% endif %}" style="font-size: 11px;">
-                                                    {{ accion.estado }}
-                                                </span>
-                                            </div>
-                                            <div class="text-end text-muted" style="font-size: 11px;">
-                                                <div><strong>Asignada:</strong> {{ accion.fecha_emision.strftime('%d-%m-%Y %H:%M') if accion.fecha_emision else 'No registrada' }}</div>
-                                                {% if accion.fecha_completacion %}
-                                                    <div class="text-success"><strong>Completada:</strong> {{ accion.fecha_completacion.strftime('%d-%m-%Y %H:%M') }}</div>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-
-                                        <div class="p-3 {% if accion.estado == 'PENDIENTE' %}border-warning{% else %}border-success{% endif %}" 
-                                            style="border-radius: 6px; background-color: #f9fafb; border-left: 4px solid;">
-                                            
-                                            <div class="mb-2">
-                                                <span class="text-uppercase tracking-wider d-block" style="font-size: 11px; font-weight: 700; color: #9ca3af;">Descripción</span>
-                                                <p class="mb-0 mt-1" style="color: #4b5563; font-size: 14px; white-space: pre-line;">
-                                                    {{ accion.descripcion }}
-                                                </p>
-                                            </div>
-
-                                            {% if accion.resultado %}
-                                            <div class="mt-3 pt-2" style="border-top: 1px dashed #d1d5db;">
-                                                <span class="text-uppercase tracking-wider d-block" style="font-size: 11px; font-weight: 700; color: #9ca3af;">Comentarios / Observaciones de Modificación</span>
-                                                <p class="italic mb-0 mt-1" style="color: #1f2937; font-style: italic; font-size: 13px;">
-                                                    "{{ accion.resultado }}"
-                                                </p>
-                                            </div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     {% endfor %}
                 </ul>
             {% else %}
-                <p class="text-muted text-center py-2">No existen acciones asociadas a este caso.</p>
+                <p>No existen acciones asociadas a este caso.</p>
             {% endif %}
 
             <hr>
