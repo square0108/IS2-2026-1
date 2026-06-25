@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Gestión de casos</h1>
+        <h1 class="h2 text-secondary">Gestión de casos</h1>
         <a href="{{ url_for('encargado_de_convivencia.nuevoCaso') }}" class="btn btn-success">Abrir nuevo caso</a>
     </div>
 
@@ -17,298 +17,111 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-bold" id="cerrados-tab" data-bs-toggle="tab" data-bs-target="#cerrados" type="button" role="tab">Casos cerrados</button>
         </li>
-        
     </ul>
 
     <div class="tab-content" id="casosTabsContent">
-        <!-- Contenido Pestaña Abiertos -->
+        <!-- CONTENIDO PESTAÑA ABIERTOS -->
         <div class="tab-pane fade show active" id="abiertos" role="tabpanel">
-        {% if casos_abiertos %}
-        {% for caso in casos_abiertos %}
-
-        <div class="col-md-4">
-
-            <div class="card shadow-sm border-primary">
-
-                <div class="card-body p-2">
-
-                    <h5 class="card-title text-primary">
-                        {{ caso.nombre }}
-                    </h5>
-
-                    <p class="mb-1">
-                        <small class="text-muted">
-                            Estado:
-                            <span class="badge bg-primary">
-                                {{ caso.estado }}
-                            </span>
-                        </small>
-                    </p>
-
-                    <p class="mb-3">
-                        <small class="text-muted">
-                            Apertura:
-                            {{ caso.fecha_creacion.strftime('%d-%m-%Y') }}
-                        </small>
-                    </p>
-
-                    <div class="d-flex gap-2">
-
-                        <a
-                        href="{{ url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id) }}"
-                        class="btn btn-outline-primary btn-sm">
-
-                            Gestionar caso
-
-                        </a>
-
-                        <button
-                        type="button"
-                        class="btn btn-outline-secondary btn-sm"
-                        data-bs-toggle="modal"
-                        data-bs-target="#historialModal{{ caso.id }}">
-
-                            Historial
-
-                        </button>
-
-                        
-
+            {% if casos_abiertos %}
+                <div class="row row-cols-1 row-cols-md-2 g-4">
+                    {% for caso in casos_abiertos %}
+                    <div class="col">
+                        <div class="card shadow-sm h-100 border-primary">
+                            <div class="card-body">
+                                <h5 class="card-title text-primary fw-bold">{{ caso.nombre }}</h5>
+                                <p class="mb-1"><small class="text-muted">Estado: <span class="badge bg-success">Abierto</span></small></p>
+                                <p class="mb-3"><small class="text-muted">Apertura: {{ caso.fecha_creacion.strftime('%d-%m-%Y') }}</small></p>
+                                <a href="{{ url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id) }}" class="btn btn-outline-primary btn-sm w-100">Gestionar caso</a>
+                            </div>
+                        </div>
                     </div>
-
+                    {% endfor %}
                 </div>
+            {% else %}
+                <div class="alert alert-light text-center border mt-3">No hay casos en curso actualmente.</div>
+            {% endif %}
 
+            <!-- Paginación Abiertos -->
+            {% if pagination_abiertos and pagination_abiertos.pages > 1 %}
+            <nav class="mt-4" aria-label="Paginación casos en curso">
+                <ul class="pagination justify-content-center">
+                    {% if pagination_abiertos.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('encargado_de_convivencia.misCasos', page_abiertos=pagination_abiertos.prev_num) }}">← Anterior</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">← Anterior</span>
+                        </li>
+                    {% endif %}
+                    
+                    {% for page_num in pagination_abiertos.iter_pages(left_edge=1, left_current=1, right_current=2, right_edge=1) %}
+                        {% if page_num %}
+                            {% if page_num == pagination_abiertos.page %}
+                                <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+                            {% else %}
+                                <li class="page-item"><a class="page-link" href="{{ url_for('encargado_de_convivencia.misCasos', page_abiertos=page_num) }}">{{ page_num }}</a></li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if pagination_abiertos.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('encargado_de_convivencia.misCasos', page_abiertos=pagination_abiertos.next_num) }}">Siguiente →</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Siguiente →</span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            <div class="text-center text-muted mb-4">
+                <small>Página {{ pagination_abiertos.page }} de {{ pagination_abiertos.pages }} ({{ pagination_abiertos.total }} casos)</small>
             </div>
-
+            {% endif %}
         </div>
 
-        <!-- MODAL HISTORIAL -->
-
-        <div
-        class="modal fade"
-        id="historialModal{{ caso.id }}"
-        tabindex="-1"
-        aria-hidden="true">
-
-            <div class="modal-dialog modal-lg">
-
-                <div class="modal-content">
-
-                    <div class="modal-header">
-
-                        <h5 class="modal-title">
-                            Historial del caso: {{ caso.nombre }}
-                        </h5>
-
-                        <button
-                        type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal"></button>
-
-                    </div>
-
-                    <div class="modal-body">
-
-                        <table class="table table-striped">
-
-                            <thead>
-
-                                <tr>
-
-                                    <th>Fecha</th>
-                                    <th>Acción</th>
-                                    <th>Responsable</th>
-                                    <th>Estado</th>
-
-                                </tr>
-
-                            </thead>
-
-                            <tbody>
-
-                                <tr>
-
-                                    <td>
-                                        {{ caso.fecha_creacion.strftime('%d-%m-%Y') }}
-                                    </td>
-
-                                    <td>
-                                        Caso creado
-                                    </td>
-
-                                    <td>
-                                        {{ caso.encargado.nombre_completo }}
-                                    </td>
-
-                                    <td>
-                                        {{ caso.estado }}
-                                    </td>
-
-                                </tr>
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        {% endfor %}
-
-    {% else %}
-
-    <div class="alert alert-light text-center border mt-3">
-        No hay casos en curso actualmente.
-    </div>
-
-    {% endif %}
-        </div>
-
-        <!-- Contenido Pestaña Cerrados -->
+        <!-- CONTENIDO PESTAÑA CERRADOS -->
         <div class="tab-pane fade" id="cerrados" role="tabpanel">
             {% if casos_cerrados %}
-                <div class="row row-cols-1 row-cols-md-3 g-2">
-                {% for caso in casos_cerrados %}
-                <div class="col.mb-4">
-
-                    <div class="card shadow-sm h-100 bg-light">
-
-                        <div class="card-body">
-
-                            <h5 class="card-title text-muted">
-                                {{ caso.nombre }}
-                            </h5>
-
-                            <p class="mb-1">
-                                <small class="text-muted">
-                                    Estado:
-                                    <span class="badge bg-secondary">
-                                        {{ caso.estado }}
-                                    </span>
-                                </small>
-                            </p>
-
-                            <p class="mb-3">
-                                <small class="text-muted">
-                                    Apertura:
-                                    {{ caso.fecha_creacion.strftime('%d-%m-%Y') }}
-                                </small>
-                            </p>
-
-                            <div class="d-flex gap-2">
-
-                                <a
-                                href="{{ url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id) }}"
-                                class="btn btn-outline-secondary btn-sm">
-
-                                    Ver detalles
-
-                                </a>
-
-                                <button
-                                type="button"
-                                class="btn btn-outline-dark btn-sm"
-                                data-bs-toggle="modal"
-                                data-bs-target="#historialModal{{ caso.id }}">
-
-                                    Historial
-
+                <div class="row row-cols-1 row-cols-md-2 g-4">
+                    {% for caso in casos_cerrados %}
+                    <div class="col">
+                        <div class="card shadow-sm h-100 bg-light">
+                            <div class="card-body">
+                                <h5 class="card-title text-muted fw-bold">{{ caso.nombre }}</h5>
+                                <p class="mb-1">
+                                    <small class="text-muted">Estado: 
+                                        {% if caso.estado == 'RESUELTO' %}
+                                            <span class="badge bg-info text-dark">Cerrado con resolución</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Archivado</span>
+                                        {% endif %}
+                                    </small>
+                                </p>
+                                <p class="mb-0"><small class="text-muted">Apertura: {{ caso.fecha_creacion.strftime('%d-%m-%Y') }}</small></p>
                                 
-
+                                {% if caso.fecha_cierre %}
+                                    <p class="mb-3"><small class="text-muted">Cierre: {{ caso.fecha_cierre.strftime('%d-%m-%Y') }}</small></p>
+                                {% else %}
+                                    <!-- Espaciador si un caso viejo cerrado no tuviera fecha de cierre guardada -->
+                                    <div class="mb-3"></div>
+                                {% endif %}
+                                
+                                <a href="{{ url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id) }}" class="btn btn-outline-secondary btn-sm w-100">Ver detalles</a>
                             </div>
-
                         </div>
-
                     </div>
-
-                </div>
-
-                <div
-                class="modal fade"
-                id="historialModal{{ caso.id }}"
-                tabindex="-1"
-                aria-hidden="true">
-
-                    <div class="modal-dialog modal-lg">
-
-                        <div class="modal-content">
-
-                            <div class="modal-header">
-
-                                <h5 class="modal-title">
-                                    Historial del caso: {{ caso.nombre }}
-                                </h5>
-
-                                <button
-                                type="button"
-                                class="btn-close"
-                                data-bs-dismiss="modal"></button>
-
-                            </div>
-
-                            <div class="modal-body">
-
-                                <table class="table table-striped">
-
-                                    <thead>
-
-                                        <tr>
-
-                                            <th>Fecha</th>
-                                            <th>Acción</th>
-                                            <th>Responsable</th>
-                                            <th>Estado</th>
-
-                                        </tr>
-
-                                    </thead>
-
-                                    <tbody>
-
-                                        <tr>
-
-                                            <td>
-                                                {{ caso.fecha_creacion.strftime('%d-%m-%Y') }}
-                                            </td>
-
-                                            <td>
-                                                Caso creado
-                                            </td>
-
-                                            <td>
-                                                {{ caso.encargado.nombre_completo }}
-                                            </td>
-
-                                            <td>
-                                                {{ caso.estado }}
-                                            </td>
-
-                                        </tr>
-
-                                    </tbody>
-
-                                </table>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                {% endfor %}
+                    {% endfor %}
                 </div>
             {% else %}
                 <div class="alert alert-light text-center border mt-3">No hay casos cerrados o archivados.</div>
             {% endif %}
 
-            <!-- PAGINACIÓN CASOS CERRADOS -->
+            <!-- Paginación Cerrados -->
             {% if pagination_cerrados and pagination_cerrados.pages > 1 %}
             <nav class="mt-4" aria-label="Paginación casos cerrados">
                 <ul class="pagination justify-content-center">
