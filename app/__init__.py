@@ -1,5 +1,5 @@
 ## Template de flask docs
-import os
+import os, datetime
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy # usar para cargar DB
@@ -51,5 +51,13 @@ def create_app(test_config=None):
 
     # from app.students.routes import students
     # app.register_blueprint(students)
+
+    # Función helper para imprimir DateTime's sólo hasta precisión de segundos en el frontend
+    @app.template_filter('datetime_sin_miliseg')
+    def datetime_sin_miliseg(value: datetime) -> str:
+        if value is None:
+            return "Fecha Pendiente"
+        # Asegúrate de que es un objeto datetime antes de formatear
+        return value.strftime('%Y-%m-%d %H:%M:%S')
 
     return app
