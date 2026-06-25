@@ -5,32 +5,79 @@
 {% block content %}
 <div class="container mt-5">
 
-    <h1 class="mb-4">Mis acciones asignadas</h1>
+    <h1 class="mb-4">Acciones que se me han asignado</h1>
 
-    {% if acciones %}
-        <div class="row">
-            {% for accion in acciones %}
-            <div class="col-md-6 mb-3">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h5>Acción #{{ accion.id }}</h5>
-                        <p>{{ accion.descripcion }}</p>
-                        <p><strong>Estado:</strong> {{ accion.estado }}</p>
-                        <p><strong>Caso:</strong> {{ accion.caso.nombre }}</p>
-                        
-                        <a href="{{ url_for(detalle_endpoint, accion_id=accion.id) }}" class="btn btn-primary">
-                            Ver acción
-                        </a>
+    <!-- Pestañas de navegación -->
+    <ul class="nav nav-tabs mb-4" id="accionesTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="pendientes-tab" data-bs-toggle="tab" data-bs-target="#pendientes"
+                type="button" role="tab">Acciones pendientes</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="completadas-tab" data-bs-toggle="tab" data-bs-target="#completadas" type="button"
+                role="tab">Acciones completadas</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="accionesTabsContent">
+        <!-- Contenido Pestaña para acciones pendientes -->
+        <div class="tab-pane fade show active" id="pendientes" role="tabpanel">
+            {% if acciones_pendientes %}
+                <div class="row">
+                    {% for accion in acciones_pendientes %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5>Acción #{{ accion.id }}</h5>
+                                <p><strong>Descripción:</strong> {{ accion.descripcion }}</p>
+                                <p><strong>Estado:</strong> {{ accion.estado }}</p>
+                                <p><strong>Caso:</strong> {{ accion.caso.nombre }}</p>
+                                
+                                <a href="{{ url_for(detalle_endpoint, accion_id=accion.id) }}" class="btn btn-primary">
+                                    Ver detalles
+                                </a>
+                            </div>
+                        </div>
                     </div>
+                    {% endfor %}
                 </div>
+            {% else %}
+                <div class="alert alert-info">
+                    No tienes acciones pendientes.
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Contenido Pestaña para acciones completadas -->
+        <div class="tab-pane fade" id="completadas" role="tabpanel">
+            {% if acciones_completadas %}
+                <div class="row">
+                    {% for accion in acciones_completadas %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5>Acción #{{ accion.id }}</h5>
+                                <p><strong>Descripción:</strong> {{ accion.descripcion }}</p>
+                                <p><strong>Estado:</strong> {{ accion.estado }}</p>
+                                <p><strong>Caso:</strong> {{ accion.caso.nombre }}</p>
+            
+                                <a href="{{ url_for(detalle_endpoint, accion_id=accion.id) }}" class="btn btn-primary">
+                                    Ver detalles
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+            <div class="alert alert-info">
+                No tienes acciones completadas.
             </div>
-            {% endfor %}
+            {% endif %}
         </div>
-    {% else %}
-        <div class="alert alert-info">
-            No tienes acciones asignadas.
-        </div>
-    {% endif %}
+
+    </div>
+
 
 </div>
 {% endblock %}

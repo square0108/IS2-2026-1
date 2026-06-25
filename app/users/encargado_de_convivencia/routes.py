@@ -520,20 +520,26 @@ def verIncidente(incidente_id):
     incidente = Antecedente.query.get_or_404(incidente_id)
     return render_template('encargado_de_convivencia/incidente_detalles.html', incidente=incidente)
 
-@encargado.route('/misAcciones')
+@encargado.route('/misAcciones', methods=["GET"])
 @login_required("encargado_de_convivencia")
 def misAcciones():
+    id_usuario_actual=session.get('user_id')
 
-    acciones = (
-        Accion.query
-        .filter_by(asignado_id=session.get('user_id'))
-        .order_by(Accion.fecha_emision.desc())
-        .all()
-    )
+    # Obtener acciones pendientes y completadas por separado para que frontend las separe en distintas tabs
+    acciones_pendientes = (Accion.query.filter_by(
+        asignado_id=id_usuario_actual,
+        estado='PENDIENTE'
+    )).order_by(Accion.fecha_emision.desc()).all()
+
+    acciones_completadas = (Accion.query.filter_by(
+        asignado_id=id_usuario_actual,
+        estado='COMPLETADA'
+    )).order_by(Accion.fecha_emision.desc()).all()
 
     return render_template(
         'shared_components/mis_acciones.html',
-        acciones=acciones,
+        acciones_pendientes=acciones_pendientes,
+        acciones_completadas=acciones_completadas,
         detalle_endpoint='encargado_de_convivencia.detalleAccion'
     )
 
