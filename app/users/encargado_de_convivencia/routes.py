@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, session, request, flash, redirect,
 from datetime import datetime, timezone
 from app.auth.login_required import login_required
 from app.db_model import db, Estudiante, Curso, Incidente, Caso, Antecedente, Observacion, Usuario, Accion
-from app.queries import ejecutar_consulta, buscar_incidentes
+from app.queries import ejecutar_consulta, buscar_incidentes, db_tryCompletarAccion
 
 encargado = Blueprint('encargado_de_convivencia', __name__)
 
@@ -554,25 +554,8 @@ def detalleAccion(accion_id):
         return redirect(url_for('encargado_de_convivencia.misAcciones'))
 
     if request.method == "POST":
-
-        accion.resultado = request.form.get('resultado')
-        accion.estado = "COMPLETADA"
-        accion.fecha_completacion = datetime.now(timezone.utc)
-
-        try:
-            db.session.commit()
-            flash("Acción completada exitosamente.", "success")
-        except Exception as e:
-            db.session.rollback()
-            flash("Error al guardar la acción.", "danger")
-            print(e)
-
-        return redirect(
-            url_for(
-                'encargado_de_convivencia.detalleAccion',
-                accion_id=accion.id
-            )
-        )
+        db_tryCompletarAccion(db, accion)
+        return redirect(url_for('encargado_de_convivencia.detalleAccion', accion_id=accion.id))
 
     return render_template(
         'shared_components/detalle_accion.html',

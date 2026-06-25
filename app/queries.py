@@ -1,4 +1,6 @@
-from app.db_model import Estudiante, Curso, Incidente
+from app.db_model import Estudiante, Curso, Incidente, Accion, db
+from datetime import datetime, timezone
+from flask import request, flash, redirect, url_for
 
 
 CONSULTAS = {
@@ -16,6 +18,25 @@ CONSULTAS = {
     }
 }
 
+def db_tryCompletarAccion(db, accion: Accion):
+    """
+    Procesa el POST request para completar una Acción, extrayendo el resultado, e intenta registrarla a la base de datos (Respuesta + Estado=COMPLETADA + Setear fecha de completacion)
+    Parameters: 
+    - db: Conexión a alguna base de datos existente.
+    - accion: Objeto Accion recuperado de la BD.
+    - redirect_endpoint: String del endpoint al que redirigir (ej: 'reportador.detalleAccion' o 'encargado_de_convivencia.detalleAccion').
+    """
+    accion.resultado = request.form.get('resultado')
+    accion.estado = "COMPLETADA"
+    accion.fecha_completacion = datetime.now(timezone.utc)
+
+    try:
+        db.session.commit()
+        flash("Acción completada exitosamente.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash("Error al guardar la acción.", "danger")
+        print(f"Error al completar acción: {e}")
 
 def buscar_incidentes(q=None, creador_id=None):
     """

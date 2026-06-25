@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session, redirect
 from app.auth.login_required import login_required
-from app.queries import listar_consultas, ejecutar_consulta
+from app.queries import listar_consultas, ejecutar_consulta, db_tryCompletarAccion
 from app.db_model import Accion
 from app.db_model import db, Estudiante, Curso, Incidente
 
@@ -128,17 +128,23 @@ def misReportes():
 @reportador.route('/misAcciones')
 @login_required("reportador")
 def misAcciones():
+    id_usuario_actual=session.get('user_id')
 
-    acciones = (
-        Accion.query
-        .filter_by(asignado_id=session.get('user_id'))
-        .order_by(Accion.fecha_emision.desc())
-        .all()
-    )
+    # Obtener acciones pendientes y completadas por separado para que frontend las separe en distintas tabs
+    acciones_pendientes = (Accion.query.filter_by(
+        asignado_id=id_usuario_actual,
+        estado='PENDIENTE'
+    )).order_by(Accion.fecha_emision.desc()).all()
+
+    acciones_completadas = (Accion.query.filter_by(
+        asignado_id=id_usuario_actual,
+        estado='COMPLETADA'
+    )).order_by(Accion.fecha_emision.desc()).all()
 
     return render_template(
         'shared_components/mis_acciones.html',
-        acciones=acciones,
+        acciones_pendientes=acciones_pendientes,
+        acciones_completadas=acciones_completadas,
         detalle_endpoint='reportador.detalleAccion'
     )
 
@@ -153,24 +159,7 @@ def detalleAccion(accion_id):
         return redirect(url_for('reportador.misAcciones'))
 
     if request.method == "POST":
-
-        accion.resultado = request.form.get('resultado')
-        accion.estado = "COMPLETADA"
-
-        try:
-            db.session.commit()
-            flash("Acción completada exitosamente.", "success")
-        except Exception as e:
-            db.session.rollback()
-            flash("Error al guardar la acción.", "danger")
-            print(e)
-
-        return redirect(
-            url_for(
-                'reportador.detalleAccion',
-                accion_id=accion.id
-            )
-        )
+        db_tryCompletarAccion(db, accion)
 
     return render_template(
         'shared_components/detalle_accion.html',
