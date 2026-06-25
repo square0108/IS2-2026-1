@@ -557,6 +557,7 @@ def detalleAccion(accion_id):
 
         accion.resultado = request.form.get('resultado')
         accion.estado = "COMPLETADA"
+        accion.fecha_completacion = datetime.now(timezone.utc)
 
         try:
             db.session.commit()
