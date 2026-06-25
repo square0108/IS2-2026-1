@@ -230,10 +230,10 @@ def detalleCaso(caso_id):
                 
         return redirect(url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id))
 
-    responsables = Usuario.query.filter(
-        (Usuario.es_reportador == True) |
-        (Usuario.es_encargado == True)
-    ).all()
+    # responsables = Usuario.query.filter(
+    #     (Usuario.es_reportador == True) | (Usuario.es_orientador == True)
+    # ).all()               DEPRECATED: No hay orientadores ya :(
+    responsables = Usuario.query.filter(Usuario.es_reportador == True).all()
 
     return render_template(
         'encargado_de_convivencia/caso_detalles.html',
