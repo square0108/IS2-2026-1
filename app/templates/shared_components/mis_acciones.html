@@ -78,6 +78,37 @@
 
     </div>
 
-
 </div>
+
+{% block scripts %}
+<!-- Script para guardar la tab que seleccionó el usuario (pendiente o completada) si se va y vuelve de esta vista HTML -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        // 1. Al cargar la página, revisar si hay una pestaña guardada en la memoria
+        const savedTabId = sessionStorage.getItem('activeTabAcciones');
+
+        if (savedTabId) {
+            // Buscar el botón de la pestaña guardada
+            const tabElement = document.getElementById(savedTabId);
+            if (tabElement) {
+                // Usar la API nativa de Bootstrap 5 para activarla
+                const tab = new bootstrap.Tab(tabElement);
+                tab.show();
+            }
+        }
+
+        // 2. Escuchar cada vez que el usuario cambia de pestaña y guardar su elección
+        const tabList = document.querySelectorAll('button[data-bs-toggle="tab"]');
+
+        tabList.forEach(tabTrigger => {
+            // 'shown.bs.tab' es un evento nativo de Bootstrap que se dispara cuando la animación termina
+            tabTrigger.addEventListener('shown.bs.tab', function (event) {
+                // event.target.id será 'pendientes-tab' o 'completadas-tab'
+                sessionStorage.setItem('activeTabAcciones', event.target.id);
+            });
+        });
+    });
+</script>
+{% endblock %}
 {% endblock %}
