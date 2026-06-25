@@ -27,7 +27,7 @@ def test_login_credenciales_invalidas(client, init_database):
 def test_acceso_denegado_sin_login(client, init_database):
     """Prueba que las rutas protegidas rebotan a los visitantes anónimos."""
     # Act: Intentamos entrar directo a crear un caso sin pasar por el login
-    response = client.get('/manager/nuevoCaso', follow_redirects=True)
+    response = client.get('/encargado_de_convivencia/nuevoCaso', follow_redirects=True)
     
     # Assert: El decorador nos debe haber pateado al login con un mensaje Flash
     assert response.status_code == 200
@@ -39,7 +39,7 @@ def test_acceso_denegado_rol_incorrecto(client, init_database, auth_reportador):
     # Arrange: El fixture 'auth_reportador' ya inyectó una sesión válida de profesor.
     
     # Act: El profesor intenta entrar a gestionar casos de convivencia
-    response = client.get('/manager/nuevoCaso', follow_redirects=True)
+    response = client.get('/encargado_de_convivencia/nuevoCaso', follow_redirects=True)
     
     # Assert: El decorador verifica 'user_type' y lo rebota por no ser 'encargado_de_convivencia'
     assert response.status_code == 200
