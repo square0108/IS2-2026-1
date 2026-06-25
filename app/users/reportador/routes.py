@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session, redirect
 from app.auth.login_required import login_required
 from app.queries import listar_consultas, ejecutar_consulta
-
+from app.db_model import Accion
 from app.db_model import db, Estudiante, Curso, Incidente
 
 reportador = Blueprint('reportador', __name__)
@@ -124,3 +124,56 @@ def misReportes():
     
     # Renderizar el nuevo template pasándole la lista de incidentes y la paginación
     return render_template('shared_components/mis_reportes.html', incidentes=incidentes, pagination=pagination)
+
+@reportador.route('/misAcciones')
+@login_required("reportador")
+def misAcciones():
+
+    acciones = (
+        Accion.query
+        .filter_by(asignado_id=session.get('user_id'))
+        .order_by(Accion.fecha_emision.desc())
+        .all()
+    )
+
+    return render_template(
+        'shared_components/mis_acciones.html',
+        acciones=acciones,
+        detalle_endpoint='reportador.detalleAccion'
+    )
+
+@reportador.route('/accion/<int:accion_id>', methods=["GET", "POST"])
+@login_required("reportador")
+def detalleAccion(accion_id):
+
+    accion = Accion.query.get_or_404(accion_id)
+
+    if accion.asignado_id != session.get('user_id'):
+        flash("No tienes permiso para acceder a esta acción.", "danger")
+        return redirect(url_for('reportador.misAcciones'))
+
+    if request.method == "POST":
+
+        accion.resultado = request.form.get('resultado')
+        accion.estado = "COMPLETADA"
+
+        try:
+            db.session.commit()
+            flash("Acción completada exitosamente.", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash("Error al guardar la acción.", "danger")
+            print(e)
+
+        return redirect(
+            url_for(
+                'reportador.detalleAccion',
+                accion_id=accion.id
+            )
+        )
+
+    return render_template(
+        'shared_components/detalle_accion.html',
+        accion=accion,
+        back_url=url_for('reportador.misAcciones')
+    )
