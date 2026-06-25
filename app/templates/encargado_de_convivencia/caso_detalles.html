@@ -1,109 +1,150 @@
 {% extends "base.html" %}
 
-{% block title %} Detalle del Caso {% endblock %}
+{% block title %} Detalle del caso {% endblock %}
 
 {% block content %}
 <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Gestión de caso</h1>
+        <h1 class="h2 text-secondary">Gestión de caso</h1>
         <a href="{{ url_for('encargado_de_convivencia.misCasos') }}" class="btn btn-outline-secondary">Volver a mis casos</a>
     </div>
 
-    <div class="card shadow-sm border-primary mb-4">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">{{ caso.nombre }}</h4>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <p><strong>ID:</strong> #{{ caso.id }}</p>
-                    <p><strong>Fecha de creación:</strong> {{ caso.fecha_creacion.strftime('%d-%m-%Y a las %H:%M') }}</p>
-                    <p><strong>Encargado:</strong> {{ caso.encargado.nombre_completo }}</p>
+    <div class="card shadow-sm mb-4">
+        <div class="card-body p-4">
+            <div class="row align-items-center">
+                <div class="col-md-7">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <h3 class="mb-0 text-primary fw-bold">{{ caso.nombre }}</h3>
+                        
+                        {% if caso.estado == 'ABIERTO' %}
+                            <span class="badge bg-success px-3 py-2 fs-6">Abierto</span>
+                        {% elif caso.estado == 'RESUELTO' %}
+                            <span class="badge bg-info text-dark px-3 py-2 fs-6">Cerrado con resolución</span>
+                        {% else %}
+                            <span class="badge bg-secondary px-3 py-2 fs-6">Archivado</span>
+                        {% endif %}
+                    </div>
+                    <!-- <p class="text-muted mb-1"><strong>Identificador:</strong> #{{ caso.id }}</p> -->
+                    <p class="text-muted mb-1"><strong>Apertura:</strong> {{ caso.fecha_creacion.strftime('%d-%m-%Y') }}</p>
+                    
+                    {% if caso.fecha_cierre %}
+                        <p class="text-muted mb-1"><strong>Cierre:</strong> {{ caso.fecha_cierre.strftime('%d-%m-%Y') }}</p>
+                    {% endif %}
+                    
+                    <p class="text-muted mb-0"><strong>Encargado asignado:</strong> {{ caso.encargado.nombre_completo }}</p>
                 </div>
                 
-                <div class="col-md-6 border-start">
-                    <form method="POST" action="">
-                        <div class="mb-3">
-                            <label for="estado_caso" class="form-label fw-bold">Estado actual:</label>
-                            <select class="form-select" id="estado_caso" name="estado_caso">
-                                <option value="ABIERTO" {% if caso.estado == 'ABIERTO' %}selected{% endif %}>ABIERTO</option>
-                                <option value="RESUELTO" {% if caso.estado == 'RESUELTO' %}selected{% endif %}>RESUELTO</option>
-                                <option value="ARCHIVADO" {% if caso.estado == 'ARCHIVADO' %}selected{% endif %}>ARCHIVADO</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Actualizar estado</button>
-                    </form>
+                <div class="col-md-5 text-md-end mt-3 mt-md-0">
+                    {% if caso.estado == 'ABIERTO' %}
+                        <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#concluirModal">
+                            Concluir caso
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#archivarModal">
+                            Archivar caso
+                        </button>
+                    {% else %}
+                        <form method="POST" action="{{ url_for('encargado_de_convivencia.reabrirCaso', caso_id=caso.id) }}" class="d-inline">
+                            <button type="submit" class="btn btn-warning">
+                                Reabrir caso
+                            </button>
+                        </form>
+                    {% endif %}
                 </div>
             </div>
+
+            {% if caso.estado == 'RESUELTO' and caso.resolucion %}
+                <div class="alert alert-success mt-4 border-success shadow-sm mb-0">
+                    <h5 class="alert-heading fw-bold text-success">Resolución final y acuerdos:</h5>
+                    <hr>
+                    <p class="mb-0 text-dark" style="white-space: pre-wrap;">{{ caso.resolucion }}</p>
+                </div>
+            {% elif caso.estado == 'ARCHIVADO' %}
+                <div class="alert alert-light mt-4 border text-muted mb-0">
+                    <p class="mb-0"><em>Este caso fue archivado por razones de gestión interna sin una resolución definitiva.</em></p>
+                </div>
+            {% endif %}
         </div>
     </div>
 
-    <div class="card shadow-sm">
-        <div class="card-header bg-light d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Antecedentes relevantes</h5>
-            <a href="{{ url_for('encargado_de_convivencia.vincularEvidencia', caso_id=caso.id) }}" class="btn btn-sm btn-success">+ Adjuntar nuevo antecedente</a>
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0 text-secondary">Antecedentes vinculados</h5>
+            
+            {% if caso.estado == 'ABIERTO' %}
+                <a href="{{ url_for('encargado_de_convivencia.vincularEvidencia', caso_id=caso.id) }}" class="btn btn-sm btn-success">
+                    + Adjuntar antecedente
+                </a>
+            {% else %}
+                <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#advertenciaAntecedenteModal">
+                    + Adjuntar antecedente
+                </button>
+            {% endif %}
         </div>
         
         <div class="card-body">
             {% if caso.evidencias %}
                 <ul class="list-group list-group-flush">
                     {% for antecedente in caso.evidencias %}
-                        <li class="list-group-item">
+                        <li class="list-group-item px-0">
                             <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1">{{ antecedente.tipo_antecedente | capitalize }}</h6>
+                                <h6 class="mb-1 text-primary">{{ antecedente.tipo_antecedente | lower | capitalize }}</h6>
                                 <small class="text-muted">{{ antecedente.fecha_adicion.strftime('%d-%m-%Y') }}</small>
                             </div>
-                            <p class="mb-1">{{ antecedente.descripcion }}</p>
-                            
+                            <p class="mb-1 text-dark">{{ antecedente.descripcion }}</p>
                             <div class="d-flex justify-content-between align-items-center mt-2">
                                 <small class="text-muted">Reportado por: {{ antecedente.creador.nombre_completo }}</small>
-                                <a href="{{ url_for('encargado_de_convivencia.verIncidente', incidente_id=antecedente.id) }}" class="btn btn-sm btn-outline-primary">Ver incidente</a>
+                                <a href="{{ url_for('encargado_de_convivencia.verIncidente', incidente_id=antecedente.id) }}" class="btn btn-sm btn-outline-primary">Ver detalles</a>
                             </div>
                         </li>
                     {% endfor %}
                 </ul>
             {% else %}
                 <div class="text-center py-4 text-muted">
-                    <p>Aún no hay antecedentes vinculados a este caso.</p>
+                    <p class="mb-0">Aún no hay antecedentes vinculados a este caso.</p>
                 </div>
             {% endif %}
         </div>
     </div>
 
-    <div class="card shadow-sm mt-4">
-        <div class="card-header bg-warning">
-            <h5 class="mb-0">Acciones de seguimiento</h5>
+    <div class="card shadow-sm mb-5">
+        <div class="card-header bg-warning bg-opacity-25 text-dark d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0 fw-bold text-dark">Acciones de seguimiento</h5>
         </div>
 
         <div class="card-body">
             {% if caso.acciones %}
-                <ul class="list-group mb-4">
+                <ul class="list-group list-group-flush mb-4">
                     {% for accion in caso.acciones %}
-                        <li class="list-group-item">
-                            <strong>{{ accion.descripcion }}</strong>
-                            <br>
-                            Responsable: {{ accion.asignado.nombre_completo }}
-                            <br>
-                            Estado: {{ accion.estado }}
+                        <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="text-dark d-block fw-bold">{{ accion.descripcion }}</span>
+                                <small class="text-muted">Asignado a: {{ accion.asignado.nombre_completo }}</small>
+                            </div>
+                            <div>
+                                {% if accion.estado == 'COMPLETADA' %}
+                                    <span class="badge bg-success px-3 py-1">Finalizada</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark px-3 py-1">En curso</span>
+                                {% endif %}
+                            </div>
                         </li>
                     {% endfor %}
                 </ul>
             {% else %}
-                <p>No existen acciones asociadas a este caso.</p>
+                <p class="text-muted">No existen acciones asociadas a este caso.</p>
             {% endif %}
 
-            <hr>
+            <hr class="text-muted">
 
-            <h6>Nueva acción</h6>
-
-            <form method="POST" action="{{ url_for('encargado_de_convivencia.crearAccion', caso_id=caso.id) }}">
+            <h5 class="h6 fw-bold text-secondary mb-3">Nueva acción de seguimiento</h5>
+            <form method="POST" id="formNuevaAccion" action="{{ url_for('encargado_de_convivencia.crearAccion', caso_id=caso.id) }}">
                 <div class="mb-3">
-                    <label class="form-label">Descripción</label>
-                    <textarea class="form-control" name="descripcion" rows="3" required></textarea>
+                    <label class="form-label text-muted">Descripción de la tarea</label>
+                    <textarea class="form-control" name="descripcion" rows="3" required placeholder="Ej: Entrevistar al estudiante para indagar motivos..."></textarea>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Asignar a</label>
+                    <label class="form-label text-muted">Funcionario responsable</label>
                     <select class="form-select" name="asignado_id" required>
                         {% for usuario in responsables %}
                             <option value="{{ usuario.id }}">{{ usuario.nombre_completo }}</option>
@@ -111,12 +152,116 @@
                     </select>
                 </div>
 
-                <button type="submit" class="btn btn-warning">Crear acción</button>
+                {% if caso.estado == 'ABIERTO' %}
+                    <button type="submit" class="btn btn-warning text-dark fw-bold">Crear acción</button>
+                {% else %}
+                    <button type="button" class="btn btn-warning text-dark fw-bold" data-bs-toggle="modal" data-bs-target="#advertenciaAccionModal">
+                        Crear acción
+                    </button>
+                {% endif %}
             </form>
         </div>
     </div>
-
-
 </div>
 
+<div class="modal fade" id="concluirModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold">Concluir caso de investigación</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            
+            {% set ns = namespace(tiene_pendientes=false, cantidad=0) %}
+            {% for accion in caso.acciones %}
+                {% if accion.estado != 'COMPLETADA' %}
+                    {% set ns.tiene_pendientes = true %}
+                    {% set ns.cantidad = ns.cantidad + 1 %}
+                {% endif %}
+            {% endfor %}
+
+            <form method="POST" action="{{ url_for('encargado_de_convivencia.concluirCaso', caso_id=caso.id) }}">
+                <div class="modal-body">
+                    {% if ns.tiene_pendientes %}
+                        <div class="alert alert-warning border-warning mb-3">
+                            <strong class="d-block mb-1">⚠️ Tareas en desarrollo:</strong>
+                            Aún quedan <strong>{{ ns.cantidad }}</strong> acciones en curso asignadas a este caso. ¿Deseas dar por cerrado el caso de todas formas?
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label for="resolucion" class="form-label fw-bold text-secondary">Resolución final y acuerdos comprometidos</label>
+                        <p class="small text-muted mb-2">Por favor, detalle los compromisos adquiridos, las medidas formativas adoptadas o el cierre del diálogo entre las partes involucradas.</p>
+                        <textarea class="form-control" id="resolucion" name="resolucion" rows="5" placeholder="Escriba aquí la resolución definitiva..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar y cerrar caso</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="archivarModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title fw-bold">Archivar caso</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-dark">Está a punto de cambiar el estado de este caso a <strong>archivado</strong>.</p>
+                <div class="alert alert-info py-2 mb-0">
+                    <small>Esta opción congela el seguimiento del expediente por razones de orden administrativo, omitiendo la redacción de un informe o resolución formal de cierre.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="POST" action="{{ url_for('encargado_de_convivencia.archivarCaso', caso_id=caso.id) }}">
+                    <button type="submit" class="btn btn-secondary">Confirmar y archivar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="advertenciaAntecedenteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold">⚠️ Modificación de caso inactivo</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-dark">Este expediente se encuentra actualmente cerrado.</p>
+                <p class="text-muted mb-0">¿Está seguro de que desea agregar nuevas evidencias o reportes a una investigación que ya no se encuentra activa?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <a href="{{ url_for('encargado_de_convivencia.vincularEvidencia', caso_id=caso.id) }}" class="btn btn-danger">Sí, continuar</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="advertenciaAccionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold">⚠️ Asignación en caso inactivo</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-dark">La investigación principal de este caso ya concluyó.</p>
+                <p class="text-muted mb-0">¿Desea asignar una nueva tarea de seguimiento a pesar de que el caso se encuentra cerrado?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" onclick="document.getElementById('formNuevaAccion').submit();">Sí, crear acción</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

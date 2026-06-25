@@ -103,6 +103,9 @@ class Caso(db.Model):
     estado = db.Column(db.String(30), nullable=False, default='ABIERTO')
     fecha_creacion = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     fecha_limite = db.Column(db.DateTime, nullable=True)
+    
+    resolucion = db.Column(db.Text, nullable=True) # Guarda la conclusión del caso
+    fecha_cierre = db.Column(db.DateTime, nullable=True) # Guarda cuándo se cerró
 
     encargado_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     encargado = db.relationship('Usuario', backref=db.backref('casos_gestionados', lazy=True))

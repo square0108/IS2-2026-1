@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, session, request, flash, redirect, url_for
+from datetime import datetime, timezone
 from app.auth.login_required import login_required
 from app.db_model import db, Estudiante, Curso, Incidente, Caso, Antecedente, Observacion, Usuario, Accion
 from app.queries import ejecutar_consulta, buscar_incidentes
@@ -202,10 +203,10 @@ def misCasos():
                            casos_cerrados=pagination_cerrados.items)
 
 
-@encargado.route('/caso/<int:caso_id>', methods=["GET", "POST"])
+@encargado.route('/caso/<int:caso_id>', methods=["GET"])
 @login_required("encargado_de_convivencia")
 def detalleCaso(caso_id):
-    # Obtener el caso de la BD. Si no existe, lanza un error 404 automáticamente.
+    # Obtener el caso de la BD. Si no existe, lanza un error 404.
     caso = Caso.query.get_or_404(caso_id)
     
     # Validación de seguridad: Asegurarse de que el caso le pertenece a este encargado
@@ -213,33 +214,97 @@ def detalleCaso(caso_id):
         flash("No tienes permiso para ver o editar este caso.", "danger")
         return redirect(url_for('encargado_de_convivencia.misCasos'))
 
-    # Si se envía el formulario para cambiar el estado
-    if request.method == "POST":
-        nuevo_estado = request.form.get('estado_caso')
-        
-        # Validar que el estado enviado sea uno de los permitidos
-        if nuevo_estado in ['ABIERTO', 'RESUELTO', 'ARCHIVADO']:
-            caso.estado = nuevo_estado
-            try:
-                db.session.commit()
-                flash(f"El estado del caso ha sido actualizado a {nuevo_estado}.", "success")
-            except Exception as e:
-                db.session.rollback()
-                flash("Error al actualizar el estado del caso.", "danger")
-                print(f"Error: {e}")
-                
-        return redirect(url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id))
-
-    # responsables = Usuario.query.filter(
-    #     (Usuario.es_reportador == True) | (Usuario.es_orientador == True)
-    # ).all()               DEPRECATED: No hay orientadores ya :(
-    responsables = Usuario.query.filter(Usuario.es_reportador == True).all()
+    # Lista de usuarios disponibles para asignarles nuevas acciones
+    responsables = Usuario.query.filter(
+        (Usuario.es_reportador == True) |
+        (Usuario.es_encargado == True)
+    ).all()
 
     return render_template(
         'encargado_de_convivencia/caso_detalles.html',
         caso=caso,
         responsables=responsables
     )
+
+
+@encargado.route('/caso/<int:caso_id>/concluir', methods=["POST"])
+@login_required("encargado_de_convivencia")
+def concluirCaso(caso_id):
+    caso = Caso.query.get_or_404(caso_id)
+    
+    if caso.encargado_id != session.get('user_id'):
+        flash("No tienes permiso para editar este caso.", "danger")
+        return redirect(url_for('encargado_de_convivencia.misCasos'))
+
+    texto_resolucion = request.form.get('resolucion')
+    
+    if not texto_resolucion or not texto_resolucion.strip():
+        flash("Error: Debe ingresar una resolución para concluir el caso.", "danger")
+        return redirect(url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id))
+
+    # Cambios de estado y auditoría interna
+    caso.estado = 'RESUELTO'
+    caso.resolucion = texto_resolucion.strip()
+    caso.fecha_cierre = datetime.now(timezone.utc)
+
+    try:
+        db.session.commit()
+        flash(f"El caso '{caso.nombre}' ha sido concluido con éxito.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash("Error al intentar concluir el caso.", "danger")
+        print(f"Error al concluir: {e}")
+
+    return redirect(url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id))
+
+
+@encargado.route('/caso/<int:caso_id>/archivar', methods=["POST"])
+@login_required("encargado_de_convivencia")
+def archivarCaso(caso_id):
+    caso = Caso.query.get_or_404(caso_id)
+    
+    if caso.encargado_id != session.get('user_id'):
+        flash("No tienes permiso para editar este caso.", "danger")
+        return redirect(url_for('encargado_de_convivencia.misCasos'))
+
+    # Cambios de estado (el archivado no requiere texto de resolución)
+    caso.estado = 'ARCHIVADO'
+    caso.fecha_cierre = datetime.now(timezone.utc)
+
+    try:
+        db.session.commit()
+        flash(f"El caso '{caso.nombre}' ha sido archivado.", "info")
+    except Exception as e:
+        db.session.rollback()
+        flash("Error al intentar archivar el caso.", "danger")
+        print(f"Error al archivar: {e}")
+
+    return redirect(url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id))
+
+
+@encargado.route('/caso/<int:caso_id>/reabrir', methods=["POST"])
+@login_required("encargado_de_convivencia")
+def reabrirCaso(caso_id):
+    caso = Caso.query.get_or_404(caso_id)
+    
+    if caso.encargado_id != session.get('user_id'):
+        flash("No tienes permiso para editar este caso.", "danger")
+        return redirect(url_for('encargado_de_convivencia.misCasos'))
+
+    # Al reabrir, el caso vuelve a foja cero en sus metadatos de cierre
+    caso.estado = 'ABIERTO'
+    caso.resolucion = None
+    caso.fecha_cierre = None
+
+    try:
+        db.session.commit()
+        flash(f"El caso '{caso.nombre}' ha sido reabierto exitosamente.", "warning")
+    except Exception as e:
+        db.session.rollback()
+        flash("Error al intentar reabrir el caso.", "danger")
+        print(f"Error al reabrir: {e}")
+
+    return redirect(url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id))
 
 @encargado.route(
     '/caso/<int:caso_id>/accion',
