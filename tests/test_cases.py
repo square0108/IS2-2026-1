@@ -2,13 +2,12 @@ from app.db_model import Caso
 
 def test_create_case_page_loads(client, init_database, auth_manager):
     # auth_manager simula la sesión automáticamente
-    response = client.get('/manager/nuevoCaso')
+    response = client.get('/encargado_de_convivencia/nuevoCaso')
     assert response.status_code == 200
 
 
 def test_case_requires_name(client, init_database, auth_manager):
-    response = client.post(
-        '/manager/nuevoCaso',
+    response = client.post('/encargado_de_convivencia/nuevoCaso',
         data={
             "nombre_caso": ""
         },
@@ -20,8 +19,7 @@ def test_case_requires_name(client, init_database, auth_manager):
 
 
 def test_create_case_successfully(client, init_database, auth_manager):
-    response = client.post(
-        '/manager/nuevoCaso',
+    response = client.post('/encargado_de_convivencia/nuevoCaso',
         data={
             "nombre_caso": "Caso bullying"
         },

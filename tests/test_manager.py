@@ -5,7 +5,8 @@ def test_crear_incidente_exitoso(client, init_database, auth_manager):
     # Arrange: Nuestro fixture 'init_database' ya creó 2 estudiantes de prueba con IDs 1 y 2.
     
     # Act: Enviamos el formulario POST como si hiciéramos clic en "Registrar Incidente"
-    response = client.post('/manager/reportarIncidente', data={
+    response = client.post('/encargado_de_convivencia/reportarIncidente', data={
+        'tipoAntecedente': 'incidente',
         'categoria_incidente': 'verbal',
         'descripcion': 'Gritos fuertes en el pasillo durante recreo.',
         'respuesta_inmediata': 'Se llamó la atención y se enviaron a sala.',
@@ -14,7 +15,7 @@ def test_crear_incidente_exitoso(client, init_database, auth_manager):
     
     # Assert (Frontend): Verificamos el mensaje verde de éxito en la interfaz
     assert response.status_code == 200
-    assert b'Reporte registrado exitosamente' in response.data
+    assert b'Registro guardado exitosamente' in response.data
     
     # Assert (Backend): ¡La prueba de fuego! ¿Se guardó en la Base de Datos?
     assert Incidente.query.count() == 1
@@ -30,7 +31,8 @@ def test_crear_incidente_faltan_datos(client, init_database, auth_manager):
     """Prueba Sad Path: Si faltan estudiantes, el sistema bloquea y no guarda nada."""
     
     # Act: Mandamos el formulario, pero omitimos la lista de estudiantes
-    response = client.post('/manager/reportarIncidente', data={
+    response = client.post('/encargado_de_convivencia/reportarIncidente', data={
+        'tipoAntecedente': 'incidente',
         'categoria_incidente': 'fisico',
         'descripcion': 'Pelea en el patio.',
         'respuesta_inmediata': 'Separación.'
