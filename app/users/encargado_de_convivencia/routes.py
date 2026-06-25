@@ -467,8 +467,9 @@ def misAcciones():
     )
 
     return render_template(
-        'encargado_de_convivencia/mis_acciones.html',
-        acciones=acciones
+        'shared_components/mis_acciones.html',
+        acciones=acciones,
+        detalle_endpoint='encargado_de_convivencia.detalleAccion'
     )
 
 @encargado.route('/accion/<int:accion_id>', methods=["GET", "POST"])
@@ -502,6 +503,7 @@ def detalleAccion(accion_id):
         )
 
     return render_template(
-        'encargado_de_convivencia/detalle_accion.html',
-        accion=accion
+        'shared_components/detalle_accion.html',
+        accion=accion,
+        back_url=url_for('encargado_de_convivencia.misAcciones')
     )

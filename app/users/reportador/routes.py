@@ -137,8 +137,9 @@ def misAcciones():
     )
 
     return render_template(
-        'reportador/mis_acciones.html',
-        acciones=acciones
+        'shared_components/mis_acciones.html',
+        acciones=acciones,
+        detalle_endpoint='reportador.detalleAccion'
     )
 
 @reportador.route('/accion/<int:accion_id>', methods=["GET", "POST"])
@@ -172,6 +173,7 @@ def detalleAccion(accion_id):
         )
 
     return render_template(
-        'reportador/detalle_accion.html',
-        accion=accion
+        'shared_components/detalle_accion.html',
+        accion=accion,
+        back_url=url_for('reportador.misAcciones')
     )
