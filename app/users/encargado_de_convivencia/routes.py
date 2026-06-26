@@ -228,18 +228,17 @@ def misCasos():
 @encargado.route('/caso/<int:caso_id>', methods=["GET"])
 @login_required("encargado_de_convivencia")
 def detalleCaso(caso_id):
-    # Obtener el caso de la BD. Si no existe, lanza un error 404.
+    # Obtener el caso de la BD
     caso = Caso.query.get_or_404(caso_id)
     
-    # Validación de seguridad: Asegurarse de que el caso le pertenece a este encargado
     if caso.encargado_id != session.get('user_id'):
         flash("No tienes permiso para ver o editar este caso.", "danger")
         return redirect(url_for('encargado_de_convivencia.misCasos'))
 
-    # Lista de usuarios disponibles para asignarles nuevas acciones
+    # Filtramos la lista para excluir al propio encargado que tiene la sesión activa
     responsables = Usuario.query.filter(
-        (Usuario.es_reportador == True) |
-        (Usuario.es_encargado == True)
+        ((Usuario.es_reportador == True) | (Usuario.es_encargado == True)) &
+        (Usuario.id != session.get('user_id'))
     ).all()
 
     return render_template(
@@ -328,34 +327,22 @@ def reabrirCaso(caso_id):
 
     return redirect(url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id))
 
-@encargado.route(
-    '/caso/<int:caso_id>/accion',
-    methods=["POST"]
-)
+@encargado.route('/caso/<int:caso_id>/accion', methods=["POST"])
 @login_required("encargado_de_convivencia")
 def crearAccion(caso_id):
-
     caso = Caso.query.get_or_404(caso_id)
 
     if caso.encargado_id != session.get('user_id'):
-        flash(
-            "No tienes permiso.",
-            "danger"
-        )
+        flash("No tienes permiso.", "danger")
+        return redirect(url_for('encargado_de_convivencia.misCasos'))
 
-        return redirect(
-            url_for(
-                'encargado_de_convivencia.misCasos'
-            )
-        )
+    descripcion = request.form.get('descripcion')
+    asignado_id = request.form.get('asignado_id')
 
-    descripcion = request.form.get(
-        'descripcion'
-    )
-
-    asignado_id = request.form.get(
-        'asignado_id'
-    )
+    # Si el switch de derivación no se activó, asignado_id llegará vacío.
+    # En ese caso, el responsable pasa a ser automáticamente el encargado actual.
+    if not asignado_id or asignado_id == "":
+        asignado_id = session.get('user_id')
 
     accion = Accion(
         descripcion=descripcion,
@@ -366,17 +353,8 @@ def crearAccion(caso_id):
     db.session.add(accion)
     db.session.commit()
 
-    flash(
-        "Acción creada exitosamente.",
-        "success"
-    )
-
-    return redirect(
-        url_for(
-            'encargado_de_convivencia.detalleCaso',
-            caso_id=caso.id
-        )
-    )
+    flash("Acción creada exitosamente.", "success")
+    return redirect(url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id))
 
 @encargado.route('/caso/<int:caso_id>/vincular', methods=["GET", "POST"])
 @login_required("encargado_de_convivencia")
