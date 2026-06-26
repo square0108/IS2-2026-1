@@ -1,35 +1,49 @@
-{% extends "base.html"%}
+{% extends "base.html" %}
 
-{%block title%} Inicio {%endblock%}
+{% block title %} Inicio {% endblock %}
 
-{%block content%}
-<div class="container">
-    <div class="row g-3 my-4">
-        <div class="col-sm-4">
-            <a href="{{url_for('reportador.nuevoReporte')}}" class="btn btn-primary btn-lg w-100 py-4 fs-5 fw-semibold shadow-sm d-flex flex-column align-items-center justify-content-center">
-                Reportar nuevo incidente
-            </a>
+{% block content %}
+<div class="container mt-5">
+    <!-- SALUDO INICIAL -->
+    <h2 class="mb-4 text-dark fw-bold">Hola, {{ session.get('user_name') }}</h2>
+
+    <div class="row g-4 mb-5 justify-content-center">
+        <!-- TARJETA REPORTES -->
+        <div class="col-md-5">
+            <div class="card shadow-sm h-100 border-0 bg-light">
+                <div class="card-body d-flex flex-column p-4">
+                    <h5 class="card-title text-secondary fw-bold mb-4 text-center">Gestión de Reportes</h5>
+                    
+                    <a href="{{ url_for('reportador.misReportes') }}" class="btn btn-primary btn-lg w-100 mb-3 py-3 shadow-sm">
+                        Ver mis reportes
+                    </a>
+                    
+                    <a href="{{ url_for('reportador.nuevoReporte') }}" class="btn btn-outline-primary w-100 mt-auto bg-white shadow-sm">
+                        + Reportar nuevo incidente
+                    </a>
+                </div>
+            </div>
         </div>
-        <div class="col-sm-4">
-            <a href="{{url_for('reportador.misReportes')}}" class="btn btn-outline-secondary btn-lg w-100 py-4 fs-5 fw-semibold shadow-sm d-flex flex-column align-items-center justify-content-center">
-                Ver mis reportes
-            </a>
-        </div>
-        <div class="col-sm-4">
-            <a href="{{ url_for('reportador.misAcciones') }}"
-            class="btn btn-warning btn-lg w-100 py-4 fs-5 fw-semibold shadow-sm d-flex flex-column align-items-center justify-content-center">
-                Mis acciones
-            </a>
+
+        <!-- TARJETA ACCIONES -->
+        <div class="col-md-5">
+            <div class="card shadow-sm h-100 border-0 bg-light">
+                <div class="card-body d-flex flex-column p-4">
+                    <h5 class="card-title text-secondary fw-bold mb-4 text-center">Mis Tareas</h5>
+                    
+                    <a href="{{ url_for('reportador.misAcciones') }}" class="btn btn-warning text-dark btn-lg w-100 mb-3 py-3 shadow-sm fw-bold">
+                        Ver acciones asignadas
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
-  <div class="my-3 p-3 bg-body rounded shadow-sm border text-center">
-    <h6 class="border-bottom pb-2 mb-0 fw-bold text-secondary text-start">Actualizaciones recientes</h6>
-
-    <p class="text-muted"></p>
-    <p class="text-muted">La visualización de actualizaciones recientes se encuentra en desarrollo para una próxima versión.</p>
-    <img src="{{ url_for('static', filename='images/wip.png') }}" alt="Trabajo en progreso" class="img-fluid mt-3 mb-3" style="max-height: 200px; width: auto;">
-  </div>
+    <!-- SECCIÓN WIP -->
+    <div class="p-4 bg-body rounded shadow-sm border text-center">
+        <h6 class="border-bottom pb-2 mb-0 fw-bold text-secondary text-start">Actualizaciones recientes</h6>
+        <p class="text-muted mt-3">La visualización de actualizaciones recientes se encuentra en desarrollo para una próxima versión.</p>
+        <img src="{{ url_for('static', filename='images/wip.png') }}" alt="Trabajo en progreso" class="img-fluid mt-3 mb-3" style="max-height: 150px; width: auto;">
+    </div>
 </div>
-
-{%endblock%}
+{% endblock %}
