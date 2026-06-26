@@ -120,12 +120,18 @@
                                 <span class="text-dark d-block fw-bold">{{ accion.descripcion_corta }}</span>
                                 <small class="text-muted">Asignado a: {{ accion.asignado.nombre_completo }}</small>
                             </div>
-                            <div>
+                            
+                            <div class="d-flex align-items-center gap-2">
                                 {% if accion.estado == 'COMPLETADA' %}
                                     <span class="badge bg-success px-3 py-1">Finalizada</span>
                                 {% else %}
                                     <span class="badge bg-warning text-dark px-3 py-1">En curso</span>
                                 {% endif %}
+                                
+                                <a href="{{ url_for('encargado_de_convivencia.detalleAccion', accion_id=accion.id) }}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                   Ver detalle
+                                </a>
                             </div>
                         </li>
                     {% endfor %}

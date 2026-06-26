@@ -551,19 +551,29 @@ def misAcciones():
 @encargado.route('/accion/<int:accion_id>', methods=["GET", "POST"])
 @login_required("encargado_de_convivencia")
 def detalleAccion(accion_id):
-
     accion = Accion.query.get_or_404(accion_id)
+    caso = accion.caso  # Obtenemos el caso asociado
 
-    if accion.asignado_id != session.get('user_id'):
-        flash("No tienes permiso para acceder a esta acción.", "danger")
-        return redirect(url_for('encargado_de_convivencia.misAcciones'))
+    # Validación: ¿Es el usuario el responsable de la acción O es el encargado del caso?
+    es_responsable = (accion.asignado_id == session.get('user_id'))
+    es_encargado_del_caso = (caso.encargado_id == session.get('user_id'))
+
+    if not es_responsable and not es_encargado_del_caso:
+        flash("No tienes permiso para ver esta acción.", "danger")
+        return redirect(url_for('encargado_de_convivencia.misCasos'))
 
     if request.method == "POST":
+        # Bloqueo de seguridad adicional: Si no es el responsable, no puede completar la acción
+        if not es_responsable:
+            flash("Solo el responsable asignado puede completar esta acción.", "danger")
+            return redirect(url_for('encargado_de_convivencia.detalleAccion', accion_id=accion.id))
+        
         db_tryCompletarAccion(db, accion)
         return redirect(url_for('encargado_de_convivencia.detalleAccion', accion_id=accion.id))
 
     return render_template(
         'shared_components/detalle_accion.html',
         accion=accion,
-        back_url=url_for('encargado_de_convivencia.misAcciones')
+        es_responsable=es_responsable, # Pasamos este flag al template
+        back_url=url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id)
     )
