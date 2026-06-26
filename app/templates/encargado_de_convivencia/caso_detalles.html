@@ -115,19 +115,20 @@
             {% if caso.acciones %}
                 <ul class="list-group list-group-flush mb-4">
                     {% for accion in caso.acciones %}
-                        <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                            <div>
-                                <span class="text-dark d-block fw-bold">{{ accion.descripcion }}</span>
-                                <small class="text-muted">Asignado a: {{ accion.asignado.nombre_completo }}</small>
-                            </div>
-                            <div>
-                                {% if accion.estado == 'COMPLETADA' %}
-                                    <span class="badge bg-success px-3 py-1">Finalizada</span>
-                                {% else %}
-                                    <span class="badge bg-warning text-dark px-3 py-1">En curso</span>
-                                {% endif %}
-                            </div>
-                        </li>
+                    <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-dark d-block fw-bold">{{ accion.descripcion }}</span>
+                            <small class="text-muted d-block">Asignado a: {{ accion.asignado.nombre_completo }}</small>
+                            <small class="text-muted d-block">Fecha de emisión: {{ accion.fecha_emision | datetime_sin_miliseg }}</small>
+                        </div>
+                        <div>
+                            {% if accion.estado == 'COMPLETADA' %}
+                            <span class="badge bg-success px-3 py-1">Finalizada</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark px-3 py-1">En curso</span>
+                            {% endif %}
+                        </div>
+                    </li>
                     {% endfor %}
                 </ul>
             {% else %}
