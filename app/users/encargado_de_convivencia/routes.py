@@ -50,7 +50,8 @@ def nuevoReporte():
                                
     elif request.method == "POST":
         tipo_antecedente = request.form.get('tipoAntecedente')
-        descripcion = request.form.get('descripcion')
+        descripcion_corta = request.form.get('descripcion_corta')          
+        descripcion_extendida = request.form.get('descripcion_extendida')  
         ids_estudiantes = request.form.getlist('id_estudiantes_involucrados')
 
         # Validación de Seguridad
@@ -59,7 +60,7 @@ def nuevoReporte():
             return redirect(url_for('encargado_de_convivencia.nuevoReporte'))
 
         # Validación Base
-        if not descripcion or len(ids_estudiantes) < 1:
+        if not descripcion_corta or not descripcion_extendida or len(ids_estudiantes) < 1:
             flash("Error: Debe ingresar una descripción y seleccionar al menos a un estudiante.", "danger")
             return redirect(url_for('encargado_de_convivencia.nuevoReporte'))
 
@@ -76,7 +77,8 @@ def nuevoReporte():
                 return redirect(url_for('encargado_de_convivencia.nuevoReporte'))
                 
             nuevo_antecedente = Incidente(
-                descripcion=descripcion,
+                descripcion_corta=descripcion_corta.strip(),         
+                descripcion_extendida=descripcion_extendida.strip(), 
                 respuesta_inmediata=respuesta_inmediata,
                 categoria=categoria,
                 estudiantes=estudiantes_involucrados,
@@ -85,7 +87,8 @@ def nuevoReporte():
             
         elif tipo_antecedente == 'observacion':
             nuevo_antecedente = Observacion(
-                descripcion=descripcion,
+                descripcion_corta=descripcion_corta.strip(),         
+                descripcion_extendida=descripcion_extendida.strip(), 
                 estudiantes=estudiantes_involucrados,
                 creador_id=session.get('user_id')
             )
@@ -336,7 +339,8 @@ def crearAccion(caso_id):
         flash("No tienes permiso.", "danger")
         return redirect(url_for('encargado_de_convivencia.misCasos'))
 
-    descripcion = request.form.get('descripcion')
+    descripcion_corta = request.form.get('descripcion_corta')          
+    descripcion_extendida = request.form.get('descripcion_extendida')  
     asignado_id = request.form.get('asignado_id')
 
     # Si el switch de derivación no se activó, asignado_id llegará vacío.
@@ -345,7 +349,8 @@ def crearAccion(caso_id):
         asignado_id = session.get('user_id')
 
     accion = Accion(
-        descripcion=descripcion,
+        descripcion_corta=descripcion_corta.strip(),           
+        descripcion_extendida=descripcion_extendida.strip(),
         asignado_id=asignado_id,
         caso_id=caso.id
     )
@@ -546,19 +551,29 @@ def misAcciones():
 @encargado.route('/accion/<int:accion_id>', methods=["GET", "POST"])
 @login_required("encargado_de_convivencia")
 def detalleAccion(accion_id):
-
     accion = Accion.query.get_or_404(accion_id)
+    caso = accion.caso  # Obtenemos el caso asociado
 
-    if accion.asignado_id != session.get('user_id'):
-        flash("No tienes permiso para acceder a esta acción.", "danger")
-        return redirect(url_for('encargado_de_convivencia.misAcciones'))
+    # Validación: ¿Es el usuario el responsable de la acción O es el encargado del caso?
+    es_responsable = (accion.asignado_id == session.get('user_id'))
+    es_encargado_del_caso = (caso.encargado_id == session.get('user_id'))
+
+    if not es_responsable and not es_encargado_del_caso:
+        flash("No tienes permiso para ver esta acción.", "danger")
+        return redirect(url_for('encargado_de_convivencia.misCasos'))
 
     if request.method == "POST":
+        # Bloqueo de seguridad adicional: Si no es el responsable, no puede completar la acción
+        if not es_responsable:
+            flash("Solo el responsable asignado puede completar esta acción.", "danger")
+            return redirect(url_for('encargado_de_convivencia.detalleAccion', accion_id=accion.id))
+        
         db_tryCompletarAccion(db, accion)
         return redirect(url_for('encargado_de_convivencia.detalleAccion', accion_id=accion.id))
 
     return render_template(
         'shared_components/detalle_accion.html',
         accion=accion,
-        back_url=url_for('encargado_de_convivencia.misAcciones')
+        es_responsable=es_responsable, # Pasamos este flag al template
+        back_url=url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id)
     )

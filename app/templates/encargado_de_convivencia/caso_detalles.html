@@ -90,7 +90,7 @@
                                 <h6 class="mb-1 text-primary">{{ antecedente.tipo_antecedente | lower | capitalize }}</h6>
                                 <small class="text-muted">{{ antecedente.fecha_adicion.strftime('%d-%m-%Y') }}</small>
                             </div>
-                            <p class="mb-1 text-dark">{{ antecedente.descripcion }}</p>
+                            <p class="mb-1 text-dark fw-bold">{{ antecedente.descripcion_corta }}</p>
                             <div class="d-flex justify-content-between align-items-center mt-2">
                                 <small class="text-muted">Reportado por: {{ antecedente.creador.nombre_completo }}</small>
                                 <a href="{{ url_for('encargado_de_convivencia.verIncidente', incidente_id=antecedente.id) }}" class="btn btn-sm btn-outline-primary">Ver detalles</a>
@@ -117,15 +117,21 @@
                     {% for accion in caso.acciones %}
                         <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
                             <div>
-                                <span class="text-dark d-block fw-bold">{{ accion.descripcion }}</span>
+                                <span class="text-dark d-block fw-bold">{{ accion.descripcion_corta }}</span>
                                 <small class="text-muted">Asignado a: {{ accion.asignado.nombre_completo }}</small>
                             </div>
-                            <div>
+                            
+                            <div class="d-flex align-items-center gap-2">
                                 {% if accion.estado == 'COMPLETADA' %}
                                     <span class="badge bg-success px-3 py-1">Finalizada</span>
                                 {% else %}
                                     <span class="badge bg-warning text-dark px-3 py-1">En curso</span>
                                 {% endif %}
+                                
+                                <a href="{{ url_for('encargado_de_convivencia.detalleAccion', accion_id=accion.id) }}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                   Ver detalle
+                                </a>
                             </div>
                         </li>
                     {% endfor %}
@@ -139,8 +145,13 @@
             <h5 class="h6 fw-bold text-secondary mb-3">Nueva acción de seguimiento</h5>
             <form method="POST" id="formNuevaAccion" action="{{ url_for('encargado_de_convivencia.crearAccion', caso_id=caso.id) }}">
                 <div class="mb-3">
-                    <label class="form-label text-muted">Descripción de la tarea</label>
-                    <textarea class="form-control" name="descripcion" rows="3" required placeholder="Ej: Entrevistar al estudiante para indagar motivos..."></textarea>
+                    <label class="form-label text-muted">Asunto de la tarea</label>
+                    <input type="text" class="form-control" name="descripcion_corta" maxlength="100" required placeholder="Ej: Entrevistar al estudiante">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted">Instrucciones detalladas</label>
+                    <textarea class="form-control" name="descripcion_extendida" rows="3" required placeholder="Describa el objetivo y contexto de la tarea asignada..."></textarea>
                 </div>
 
                 <div class="form-check form-switch mb-3">
