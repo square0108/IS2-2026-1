@@ -6,13 +6,13 @@
 <div class="container mt-5">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Acción #{{ accion.id }}</h2>
+        <h2 class="text-secondary fw-bold mb-0">{{ accion.descripcion_corta }}</h2>
         <a href="{{ back_url }}" class="btn btn-outline-secondary">Volver a mis Acciones Asignadas</a>
     </div>
     
     <div class="card shadow-sm">
         <div class="card-body">
-            <p><strong>Descripción:</strong> {{ accion.descripcion }}</p>
+            <p><strong>Detalles:</strong> {{ accion.descripcion_extendida }}</p>
             <p><strong>Estado:</strong> {{ accion.estado }}</p>
             <p><strong>Caso:</strong> {{ accion.caso.nombre }}</p>
             <p><strong>Fecha y hora de emisión:</strong> {{ accion.fecha_emision | datetime_sin_miliseg }}</p>

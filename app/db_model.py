@@ -64,7 +64,10 @@ class Antecedente(db.Model):
     __tablename__ = 'antecedentes'
     id = db.Column(db.Integer, primary_key=True)
     fecha_adicion = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
-    descripcion = db.Column(db.Text, nullable=False)
+    
+    descripcion_corta = db.Column(db.String(100), nullable=False)
+    descripcion_extendida = db.Column(db.Text, nullable=False)
+
     tipo_antecedente = db.Column(db.String(30), nullable=False)
     
     creador_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
@@ -123,7 +126,10 @@ class Accion(db.Model):
     __tablename__ = 'acciones'
     
     id = db.Column(db.Integer, primary_key=True)
-    descripcion = db.Column(db.Text, nullable=False)
+    
+    descripcion_corta = db.Column(db.String(100), nullable=False)
+    descripcion_extendida = db.Column(db.Text, nullable=False)
+    
     resultado = db.Column(db.Text, nullable=True)
     estado = db.Column(db.String(50), default='PENDIENTE', nullable=False) # uno de PENDIENTE, COMPLETADA
     

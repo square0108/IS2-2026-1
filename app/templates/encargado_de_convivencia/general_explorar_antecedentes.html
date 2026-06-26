@@ -100,7 +100,7 @@
                                         {% endfor %}
                                     </ul>
                                 </td>
-                                <td><p class="small text-muted mb-0 text-truncate" style="max-width: 250px;" title="{{ ant.descripcion }}">{{ ant.descripcion }}</p></td>
+                                <td><p class="small text-dark fw-bold mb-0 text-truncate" style="max-width: 250px;" title="{{ ant.descripcion_corta }}">{{ ant.descripcion_corta }}</p></td>
                                 <td><small class="text-dark">{{ ant.creador.nombre_completo }}</small></td>
                                 <td>
                                     <a href="{{ url_for('encargado_de_convivencia.verIncidente', incidente_id=ant.id) }}" class="btn btn-sm btn-outline-primary">Ver detalles</a>

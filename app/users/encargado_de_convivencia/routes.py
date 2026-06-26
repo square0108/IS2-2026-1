@@ -50,7 +50,8 @@ def nuevoReporte():
                                
     elif request.method == "POST":
         tipo_antecedente = request.form.get('tipoAntecedente')
-        descripcion = request.form.get('descripcion')
+        descripcion_corta = request.form.get('descripcion_corta')          
+        descripcion_extendida = request.form.get('descripcion_extendida')  
         ids_estudiantes = request.form.getlist('id_estudiantes_involucrados')
 
         # Validación de Seguridad
@@ -59,7 +60,7 @@ def nuevoReporte():
             return redirect(url_for('encargado_de_convivencia.nuevoReporte'))
 
         # Validación Base
-        if not descripcion or len(ids_estudiantes) < 1:
+        if not descripcion_corta or not descripcion_extendida or len(ids_estudiantes) < 1:
             flash("Error: Debe ingresar una descripción y seleccionar al menos a un estudiante.", "danger")
             return redirect(url_for('encargado_de_convivencia.nuevoReporte'))
 
@@ -76,7 +77,8 @@ def nuevoReporte():
                 return redirect(url_for('encargado_de_convivencia.nuevoReporte'))
                 
             nuevo_antecedente = Incidente(
-                descripcion=descripcion,
+                descripcion_corta=descripcion_corta.strip(),         
+                descripcion_extendida=descripcion_extendida.strip(), 
                 respuesta_inmediata=respuesta_inmediata,
                 categoria=categoria,
                 estudiantes=estudiantes_involucrados,
@@ -85,7 +87,8 @@ def nuevoReporte():
             
         elif tipo_antecedente == 'observacion':
             nuevo_antecedente = Observacion(
-                descripcion=descripcion,
+                descripcion_corta=descripcion_corta.strip(),         
+                descripcion_extendida=descripcion_extendida.strip(), 
                 estudiantes=estudiantes_involucrados,
                 creador_id=session.get('user_id')
             )
@@ -336,7 +339,8 @@ def crearAccion(caso_id):
         flash("No tienes permiso.", "danger")
         return redirect(url_for('encargado_de_convivencia.misCasos'))
 
-    descripcion = request.form.get('descripcion')
+    descripcion_corta = request.form.get('descripcion_corta')          
+    descripcion_extendida = request.form.get('descripcion_extendida')  
     asignado_id = request.form.get('asignado_id')
 
     # Si el switch de derivación no se activó, asignado_id llegará vacío.
@@ -345,7 +349,8 @@ def crearAccion(caso_id):
         asignado_id = session.get('user_id')
 
     accion = Accion(
-        descripcion=descripcion,
+        descripcion_corta=descripcion_corta.strip(),           
+        descripcion_extendida=descripcion_extendida.strip(),
         asignado_id=asignado_id,
         caso_id=caso.id
     )

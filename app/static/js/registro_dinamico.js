@@ -34,7 +34,16 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.inputs-incidente').forEach(i => i.setAttribute('required', 'true'));
             
             helperText.innerText = "Registro de un evento puntual que afecta la convivencia escolar.";
+            document.getElementById('descripcionCorta').placeholder = "Ej: Agresión física en el patio";
             txtDescripcion.placeholder = "Describa el incidente (ej. Juan empujó a Pedro en el patio durante el recreo).";
+            
+        } else if (tipoSeleccionado === 'observacion') {
+            // Ya no es necesario mostrar el bloque-incidente
+            helperText.innerText = "Anotación sobre conductas, estado de ánimo o situaciones de interés general.";
+            
+            // AQUÍ ESTÁ EL CAMBIO: Placeholder distinto para observaciones
+            document.getElementById('descripcionCorta').placeholder = "Ej: Nota sobre cambio de actitud en clases";
+            txtDescripcion.placeholder = "Describa la observación (ej. María se ha mostrado inusualmente retraída y no participa en clases).";
         }
         /*
         else if (tipoSeleccionado === 'diagnostico') {
@@ -46,10 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
         }
         */
-        else if (tipoSeleccionado === 'observacion') {
-            helperText.innerText = "Anotación sobre conductas, estado de ánimo o situaciones de interés general.";
-            txtDescripcion.placeholder = "Describa la observación (ej. María se ha mostrado inusualmente retraída y no participa en clases).";
-        }
 
         validarEstadoFormulario();
     });
@@ -80,6 +85,7 @@ function limpiarFormularioYEstudiantes() {
         el.value = "";
     });
     document.getElementById('descripcionGeneral').value = "";
+    document.getElementById('descripcionCorta').value = "";
 
     selectedStudents = [];
     localStorage.removeItem('listaInvolucrados');

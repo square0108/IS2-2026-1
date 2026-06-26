@@ -60,7 +60,8 @@ def nuevoReporte():
   ## --- POST --- #
   elif request.method == "POST":
       tipo_antecedente = request.form.get('tipoAntecedente')
-      descripcion = request.form.get('descripcion')
+      descripcion_corta = request.form.get('descripcion_corta')          
+      descripcion_extendida = request.form.get('descripcion_extendida')  
       ids_estudiantes = request.form.getlist('id_estudiantes_involucrados')
 
       # Validación de Seguridad
@@ -69,8 +70,8 @@ def nuevoReporte():
           return redirect(url_for('reportador.nuevoReporte'))
 
       # Validación Base
-      if not descripcion or len(ids_estudiantes) < 1:
-          flash("Error: Debe ingresar una descripción y seleccionar al menos a un estudiante.", "danger")
+      if not descripcion_corta or not descripcion_extendida or len(ids_estudiantes) < 1:
+          flash("Error: Faltan datos obligatorios.", "danger")
           return redirect(url_for('reportador.nuevoReporte'))
 
       categoria = request.form.get('categoria_incidente')
@@ -83,7 +84,8 @@ def nuevoReporte():
       estudiantes_involucrados = Estudiante.query.filter(Estudiante.id.in_(ids_estudiantes)).all()
 
       nuevo_incidente = Incidente(
-          descripcion=descripcion,
+          descripcion_corta=descripcion_corta.strip(),
+          descripcion_extendida=descripcion_extendida.strip(),
           respuesta_inmediata=respuesta_inmediata,
           categoria=categoria,
           estudiantes=estudiantes_involucrados,

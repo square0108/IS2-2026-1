@@ -15,41 +15,47 @@
     </div>
 
     {% if incidentes %}
-        <div class="row row-cols-1 g-4">
-            {% for incidente in incidentes %}
-            <div class="col">
-                <div class="card shadow-sm h-100 border-primary">
-                    <div class="card-header bg-primary text-white d-flex justify-content-between">
-                        <strong>{{ incidente.categoria | capitalize }}</strong>
-                        <small>{{ incidente.fecha_adicion.strftime('%d-%m-%Y %H:%M') }}</small>
-                    </div>
+    <div class="row row-cols-1 g-4">
+        {% for incidente in incidentes %}
+        <div class="col">
+            <div class="card shadow-sm h-100 border-primary">
+                <div class="card-header bg-primary text-white d-flex justify-content-between">
+                    <strong>{{ incidente.categoria | capitalize }}</strong>
+                    <small>{{ incidente.fecha_adicion.strftime('%d-%m-%Y %H:%M') }}</small>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Título usando la descripción corta -->
+                    <h5 class="card-title text-primary fw-bold mb-3">{{ incidente.descripcion_corta }}</h5>
                     
-                    <div class="card-body">
-                        <h6 class="card-subtitle mb-2 text-muted fw-bold">Estudiantes involucrados:</h6>
-                        <!-- Ir a expediente -->
-                        <ul class="mb-3">
-                            {% for estudiante in incidente.estudiantes %}
-                                <li>
-                                    {{ estudiante.nombre_completo }} ({{ estudiante.curso.nombre }})
-                                    {% if session.get('user_type') == 'encargado_de_convivencia' %}
-                                        <a href="{{ url_for('encargado_de_convivencia.expedienteEstudiante', estudiante_id=estudiante.id) }}" 
-                                           class="text-decoration-none ms-1" 
-                                           title="Ver expediente">🔍</a>
-                                    {% endif %}
-                                </li>
-                            {% endfor %}
-                        </ul>
-                        
-                        <h6 class="card-subtitle mb-2 text-muted fw-bold">Descripción:</h6>
-                        <p class="card-text">{{ incidente.descripcion }}</p>
-                        
+                    <h6 class="card-subtitle mb-2 text-muted fw-bold">Estudiantes involucrados:</h6>
+                    <ul class="mb-3">
+                        {% for estudiante in incidente.estudiantes %}
+                            <li>
+                                {{ estudiante.nombre_completo }} ({{ estudiante.curso.nombre }})
+                                {% if session.get('user_type') == 'encargado_de_convivencia' %}
+                                    <a href="{{ url_for('encargado_de_convivencia.expedienteEstudiante', estudiante_id=estudiante.id) }}" 
+                                       class="text-decoration-none ms-1" 
+                                       title="Ver expediente">🔍</a>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    
+                    <!-- Descripción extendida -->
+                    <h6 class="card-subtitle mb-2 text-muted fw-bold">Detalles:</h6>
+                    <p class="card-text text-dark">{{ incidente.descripcion_extendida }}</p>
+                    
+                    <!-- Respuesta inmediata -->
+                    {% if incidente.respuesta_inmediata %}
                         <h6 class="card-subtitle mb-2 text-muted fw-bold">Respuesta inmediata:</h6>
-                        <p class="card-text">{{ incidente.respuesta_inmediata }}</p>
-                    </div>
+                        <p class="card-text text-dark">{{ incidente.respuesta_inmediata }}</p>
+                    {% endif %}
                 </div>
             </div>
-            {% endfor %}
         </div>
+        {% endfor %}
+    </div>
     {% else %}
         <div class="alert alert-info text-center shadow-sm" role="alert">
             <p>Aún no has registrado ningún incidente en el sistema.</p>
