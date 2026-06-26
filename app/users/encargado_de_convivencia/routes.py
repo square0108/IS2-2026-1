@@ -50,7 +50,8 @@ def nuevoReporte():
                                
     elif request.method == "POST":
         tipo_antecedente = request.form.get('tipoAntecedente')
-        descripcion = request.form.get('descripcion')
+        descripcion_corta = request.form.get('descripcion_corta')          
+        descripcion_extendida = request.form.get('descripcion_extendida')  
         ids_estudiantes = request.form.getlist('id_estudiantes_involucrados')
 
         # Validación de Seguridad
@@ -59,7 +60,7 @@ def nuevoReporte():
             return redirect(url_for('encargado_de_convivencia.nuevoReporte'))
 
         # Validación Base
-        if not descripcion or len(ids_estudiantes) < 1:
+        if not descripcion_corta or not descripcion_extendida or len(ids_estudiantes) < 1:
             flash("Error: Debe ingresar una descripción y seleccionar al menos a un estudiante.", "danger")
             return redirect(url_for('encargado_de_convivencia.nuevoReporte'))
 
@@ -76,7 +77,8 @@ def nuevoReporte():
                 return redirect(url_for('encargado_de_convivencia.nuevoReporte'))
                 
             nuevo_antecedente = Incidente(
-                descripcion=descripcion,
+                descripcion_corta=descripcion_corta.strip(),         
+                descripcion_extendida=descripcion_extendida.strip(), 
                 respuesta_inmediata=respuesta_inmediata,
                 categoria=categoria,
                 estudiantes=estudiantes_involucrados,
@@ -85,7 +87,8 @@ def nuevoReporte():
             
         elif tipo_antecedente == 'observacion':
             nuevo_antecedente = Observacion(
-                descripcion=descripcion,
+                descripcion_corta=descripcion_corta.strip(),         
+                descripcion_extendida=descripcion_extendida.strip(), 
                 estudiantes=estudiantes_involucrados,
                 creador_id=session.get('user_id')
             )
@@ -105,27 +108,49 @@ def nuevoReporte():
 @encargado.route('/explorarIncidentes', methods=["GET"])
 @login_required("encargado_de_convivencia")
 def explorarIncidentes():
-    # Obtenemos el filtro por GET (si no existe, por defecto es 'todos')
-    filtro = request.args.get('filtro', 'todos')
-
-    # Obtener número de página desde parámetros GET (por defecto 1)
+    # Capturamos los filtros desde los parámetros GET de la URL
+    filtro = request.args.get('filtro', 'todos')  # todos / mios
+    tipo = request.args.get('tipo', 'todos')      # todos / incidente / observacion
     page = request.args.get('page', 1, type=int)
-
-    # Término de búsqueda por nombre de estudiante involucrado
     q = (request.args.get('q') or '').strip()
 
-    # Si el usuario quiere ver solo los suyos, filtramos por su id
-    creador_id = session.get('user_id') if filtro == 'mios' else None
+    # Apuntamos a Antecedente.query para traer tanto incidentes como observaciones
+    query = Antecedente.query
 
-    # La lógica de la consulta vive en queries.py (capa de abstracción)
-    query = buscar_incidentes(q=q, creador_id=creador_id)
+    # 1. Filtro de autoría (Todos los reportes del colegio vs Mis reportes)
+    if filtro == 'mios':
+        query = query.filter(Antecedente.creador_id == session.get('user_id'))
 
-    # Usar paginación: 10 incidentes por página
+    # 2. Nuevo filtro por tipo de registro (Identidad polimórfica)
+    if tipo == 'incidente':
+        query = query.filter(Antecedente.tipo_antecedente == 'INCIDENTE')
+    elif tipo == 'observacion':
+        query = query.filter(Antecedente.tipo_antecedente == 'OBSERVACION')
+
+    # 3. Buscador por nombre de estudiante involucrado
+    if q:
+        like_q = f"%{q}%"
+        query = (
+            query.join(Antecedente.estudiantes)
+            .filter(Estudiante.nombre_completo.ilike(like_q))
+            .distinct()
+        )
+
+    # Ordenamos cronológicamente: los registros más recientes primero
+    query = query.order_by(Antecedente.fecha_adicion.desc())
+
+    # Aplicamos paginación nativa de SQLAlchemy (10 registros por página)
     pagination = query.paginate(page=page, per_page=10, error_out=False)
-    incidentes = pagination.items
+    antecedentes = pagination.items
 
-    return render_template('encargado_de_convivencia/general_explorar_antecedentes.html', incidentes=incidentes, pagination=pagination, filtro=filtro, q=q)
-
+    return render_template(
+        'encargado_de_convivencia/general_explorar_antecedentes.html', 
+        antecedentes=antecedentes, 
+        pagination=pagination, 
+        filtro=filtro, 
+        tipo=tipo, 
+        q=q
+    )
 
 @encargado.route('/nuevoCaso', methods=["GET", "POST"])
 @login_required("encargado_de_convivencia")
@@ -206,18 +231,17 @@ def misCasos():
 @encargado.route('/caso/<int:caso_id>', methods=["GET"])
 @login_required("encargado_de_convivencia")
 def detalleCaso(caso_id):
-    # Obtener el caso de la BD. Si no existe, lanza un error 404.
+    # Obtener el caso de la BD
     caso = Caso.query.get_or_404(caso_id)
     
-    # Validación de seguridad: Asegurarse de que el caso le pertenece a este encargado
     if caso.encargado_id != session.get('user_id'):
         flash("No tienes permiso para ver o editar este caso.", "danger")
         return redirect(url_for('encargado_de_convivencia.misCasos'))
 
-    # Lista de usuarios disponibles para asignarles nuevas acciones
+    # Filtramos la lista para excluir al propio encargado que tiene la sesión activa
     responsables = Usuario.query.filter(
-        (Usuario.es_reportador == True) |
-        (Usuario.es_encargado == True)
+        ((Usuario.es_reportador == True) | (Usuario.es_encargado == True)) &
+        (Usuario.id != session.get('user_id'))
     ).all()
 
     return render_template(
@@ -306,37 +330,27 @@ def reabrirCaso(caso_id):
 
     return redirect(url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id))
 
-@encargado.route(
-    '/caso/<int:caso_id>/accion',
-    methods=["POST"]
-)
+@encargado.route('/caso/<int:caso_id>/accion', methods=["POST"])
 @login_required("encargado_de_convivencia")
 def crearAccion(caso_id):
-
     caso = Caso.query.get_or_404(caso_id)
 
     if caso.encargado_id != session.get('user_id'):
-        flash(
-            "No tienes permiso.",
-            "danger"
-        )
+        flash("No tienes permiso.", "danger")
+        return redirect(url_for('encargado_de_convivencia.misCasos'))
 
-        return redirect(
-            url_for(
-                'encargado_de_convivencia.misCasos'
-            )
-        )
+    descripcion_corta = request.form.get('descripcion_corta')          
+    descripcion_extendida = request.form.get('descripcion_extendida')  
+    asignado_id = request.form.get('asignado_id')
 
-    descripcion = request.form.get(
-        'descripcion'
-    )
-
-    asignado_id = request.form.get(
-        'asignado_id'
-    )
+    # Si el switch de derivación no se activó, asignado_id llegará vacío.
+    # En ese caso, el responsable pasa a ser automáticamente el encargado actual.
+    if not asignado_id or asignado_id == "":
+        asignado_id = session.get('user_id')
 
     accion = Accion(
-        descripcion=descripcion,
+        descripcion_corta=descripcion_corta.strip(),           
+        descripcion_extendida=descripcion_extendida.strip(),
         asignado_id=asignado_id,
         caso_id=caso.id
     )
@@ -344,17 +358,8 @@ def crearAccion(caso_id):
     db.session.add(accion)
     db.session.commit()
 
-    flash(
-        "Acción creada exitosamente.",
-        "success"
-    )
-
-    return redirect(
-        url_for(
-            'encargado_de_convivencia.detalleCaso',
-            caso_id=caso.id
-        )
-    )
+    flash("Acción creada exitosamente.", "success")
+    return redirect(url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id))
 
 @encargado.route('/caso/<int:caso_id>/vincular', methods=["GET", "POST"])
 @login_required("encargado_de_convivencia")
@@ -546,19 +551,29 @@ def misAcciones():
 @encargado.route('/accion/<int:accion_id>', methods=["GET", "POST"])
 @login_required("encargado_de_convivencia")
 def detalleAccion(accion_id):
-
     accion = Accion.query.get_or_404(accion_id)
+    caso = accion.caso  # Obtenemos el caso asociado
 
-    if accion.asignado_id != session.get('user_id'):
-        flash("No tienes permiso para acceder a esta acción.", "danger")
-        return redirect(url_for('encargado_de_convivencia.misAcciones'))
+    # Validación: ¿Es el usuario el responsable de la acción O es el encargado del caso?
+    es_responsable = (accion.asignado_id == session.get('user_id'))
+    es_encargado_del_caso = (caso.encargado_id == session.get('user_id'))
+
+    if not es_responsable and not es_encargado_del_caso:
+        flash("No tienes permiso para ver esta acción.", "danger")
+        return redirect(url_for('encargado_de_convivencia.misCasos'))
 
     if request.method == "POST":
+        # Bloqueo de seguridad adicional: Si no es el responsable, no puede completar la acción
+        if not es_responsable:
+            flash("Solo el responsable asignado puede completar esta acción.", "danger")
+            return redirect(url_for('encargado_de_convivencia.detalleAccion', accion_id=accion.id))
+        
         db_tryCompletarAccion(db, accion)
         return redirect(url_for('encargado_de_convivencia.detalleAccion', accion_id=accion.id))
 
     return render_template(
         'shared_components/detalle_accion.html',
         accion=accion,
-        back_url=url_for('encargado_de_convivencia.misAcciones')
+        es_responsable=es_responsable, # Pasamos este flag al template
+        back_url=url_for('encargado_de_convivencia.detalleCaso', caso_id=caso.id)
     )

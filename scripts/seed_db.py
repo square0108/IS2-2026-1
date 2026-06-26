@@ -68,7 +68,8 @@ with app.app_context():
     # ==========================
     # --- Incidentes ---
     inc1 = Incidente(
-        descripcion="Juan Pérez empujó a Pedro Gómez durante el recreo.",
+        descripcion_corta="Agresión física en el patio",
+        descripcion_extendida="Juan Pérez empujó a Pedro Gómez durante el recreo.",
         respuesta_inmediata="Se separó a los estudiantes y se dialogó con ambos.",
         categoria="Físico",
         estudiantes=[estudiantes[0], estudiantes[1]],
@@ -77,7 +78,8 @@ with app.app_context():
     )
 
     inc2 = Incidente(
-        descripcion="Discusión fuerte en sala de clases entre María y Sofía por un trabajo grupal.",
+        descripcion_corta="Discusión fuerte por trabajo grupal",
+        descripcion_extendida="Discusión fuerte en sala de clases entre María y Sofía por un trabajo grupal.",
         respuesta_inmediata="Se calmó la situación y se asignó mediación.",
         categoria="Verbal",
         estudiantes=[estudiantes[3], estudiantes[4]],
@@ -86,7 +88,8 @@ with app.app_context():
     )
 
     inc3 = Incidente(
-        descripcion="Diego envió mensajes ofensivos a Juan a través de redes sociales.",
+        descripcion_corta="Acoso a través de redes sociales",
+        descripcion_extendida="Diego envió mensajes ofensivos a Juan a través de redes sociales.",
         respuesta_inmediata="Se citó a los apoderados de ambos alumnos.",
         categoria="Ciberacoso",
         estudiantes=[estudiantes[0], estudiantes[2]],
@@ -154,7 +157,8 @@ with app.app_context():
     """
 
     acc2 = Accion(
-        descripcion="Observar dinámica entre María y Sofía durante el trabajo en aula.",
+        descripcion_corta="Monitoreo de convivencia en aula",
+        descripcion_extendida="Observar dinámica entre María y Sofía durante el trabajo en aula.",
         resultado="Ambas alumnas lograron trabajar juntas sin fricciones. Se da por superado el conflicto.",
         estado="COMPLETADA",
         caso=caso2,

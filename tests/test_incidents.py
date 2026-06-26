@@ -9,7 +9,8 @@ def test_incident_requires_required_fields(client, init_database, auth_reportado
         data={
             "tipoAntecedente": "incidente",  
             "categoria_incidente": "",
-            "descripcion": "",
+            "descripcion_corta": "",         # <-- NUEVO
+            "descripcion_extendida": "",     # <-- NUEVO
             "id_estudiantes_involucrados": []
         },
         follow_redirects=True
@@ -23,7 +24,8 @@ def test_create_incident_successfully(client, init_database, auth_reportador):
         data={
             "tipoAntecedente": "incidente", 
             "categoria_incidente": "verbal",
-            "descripcion": "Discusion entre estudiantes",
+            "descripcion_corta": "Discusion por un balon",                  # <-- NUEVO
+            "descripcion_extendida": "Discusion entre estudiantes",         # <-- NUEVO
             "respuesta_inmediata": "Separacion inmediata",
             "id_estudiantes_involucrados": [1]
         },

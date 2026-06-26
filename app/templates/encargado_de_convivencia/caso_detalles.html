@@ -90,7 +90,7 @@
                                 <h6 class="mb-1 text-primary">{{ antecedente.tipo_antecedente | lower | capitalize }}</h6>
                                 <small class="text-muted">{{ antecedente.fecha_adicion.strftime('%d-%m-%Y') }}</small>
                             </div>
-                            <p class="mb-1 text-dark">{{ antecedente.descripcion }}</p>
+                            <p class="mb-1 text-dark fw-bold">{{ antecedente.descripcion_corta }}</p>
                             <div class="d-flex justify-content-between align-items-center mt-2">
                                 <small class="text-muted">Reportado por: {{ antecedente.creador.nombre_completo }}</small>
                                 <a href="{{ url_for('encargado_de_convivencia.verIncidente', incidente_id=antecedente.id) }}" class="btn btn-sm btn-outline-primary">Ver detalles</a>
@@ -115,20 +115,26 @@
             {% if caso.acciones %}
                 <ul class="list-group list-group-flush mb-4">
                     {% for accion in caso.acciones %}
-                    <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                        <div>
-                            <span class="text-dark d-block fw-bold">{{ accion.descripcion }}</span>
-                            <small class="text-muted d-block">Asignado a: {{ accion.asignado.nombre_completo }}</small>
-                            <small class="text-muted d-block">Fecha de emisión: {{ accion.fecha_emision | datetime_sin_miliseg }}</small>
-                        </div>
-                        <div>
-                            {% if accion.estado == 'COMPLETADA' %}
-                            <span class="badge bg-success px-3 py-1">Finalizada</span>
-                            {% else %}
-                            <span class="badge bg-warning text-dark px-3 py-1">En curso</span>
-                            {% endif %}
-                        </div>
-                    </li>
+                        <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="text-dark d-block fw-bold">{{ accion.descripcion_corta }}</span>
+                                <small class="text-muted">Asignado a: {{ accion.asignado.nombre_completo }}</small>
+                                <small class="text-muted d-block">Fecha de emisión: {{ accion.fecha_emision | datetime_sin_miliseg }}</small>
+                            </div>
+                            
+                            <div class="d-flex align-items-center gap-2">
+                                {% if accion.estado == 'COMPLETADA' %}
+                                    <span class="badge bg-success px-3 py-1">Finalizada</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark px-3 py-1">En curso</span>
+                                {% endif %}
+                                
+                                <a href="{{ url_for('encargado_de_convivencia.detalleAccion', accion_id=accion.id) }}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                   Ver detalle
+                                </a>
+                            </div>
+                        </li>
                     {% endfor %}
                 </ul>
             {% else %}
@@ -140,13 +146,26 @@
             <h5 class="h6 fw-bold text-secondary mb-3">Nueva acción de seguimiento</h5>
             <form method="POST" id="formNuevaAccion" action="{{ url_for('encargado_de_convivencia.crearAccion', caso_id=caso.id) }}">
                 <div class="mb-3">
-                    <label class="form-label text-muted">Descripción de la tarea</label>
-                    <textarea class="form-control" name="descripcion" rows="3" required placeholder="Ej: Entrevistar al estudiante para indagar motivos..."></textarea>
+                    <label class="form-label text-muted">Asunto de la tarea</label>
+                    <input type="text" class="form-control" name="descripcion_corta" maxlength="100" required placeholder="Ej: Entrevistar al estudiante">
                 </div>
 
                 <div class="mb-3">
+                    <label class="form-label text-muted">Instrucciones detalladas</label>
+                    <textarea class="form-control" name="descripcion_extendida" rows="3" required placeholder="Describa el objetivo y contexto de la tarea asignada..."></textarea>
+                </div>
+
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="checkDerivar">
+                    <label class="form-check-label text-muted small fw-bold" for="checkDerivar">
+                        Derivar esta tarea a otro funcionario
+                    </label>
+                </div>
+
+                <div class="mb-3" id="wrapperResponsable" style="display: none;">
                     <label class="form-label text-muted">Funcionario responsable</label>
-                    <select class="form-select" name="asignado_id" required>
+                    <select class="form-select" id="selectAsignado" name="asignado_id">
+                        <option value="" selected disabled>Seleccione un funcionario...</option>
                         {% for usuario in responsables %}
                             <option value="{{ usuario.id }}">{{ usuario.nombre_completo }}</option>
                         {% endfor %}
@@ -265,4 +284,30 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Lógica interactiva para mostrar/ocultar el selector de funcionarios
+        const checkDerivar = document.getElementById('checkDerivar');
+        const wrapperResponsable = document.getElementById('wrapperResponsable');
+        const selectAsignado = document.getElementById('selectAsignado');
+
+        if (checkDerivar && wrapperResponsable && selectAsignado) {
+            checkDerivar.addEventListener('change', function() {
+                if (this.checked) {
+                    // Si quiere derivar, se muestra el campo y se vuelve obligatorio
+                    wrapperResponsable.style.display = 'block';
+                    selectAsignado.setAttribute('required', 'true');
+                } else {
+                    // Si es una tarea propia, se oculta y deja de ser obligatorio
+                    wrapperResponsable.style.display = 'none';
+                    selectAsignado.removeAttribute('required');
+                    selectAsignado.value = ""; // Limpiamos cualquier selección previa
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}
