@@ -156,6 +156,9 @@ def detalleAccion(accion_id):
 
     accion = Accion.query.get_or_404(accion_id)
 
+    # Validación: ¿Es el usuario el responsable de la acción O es el encargado del caso?
+    es_responsable = (accion.asignado_id == session.get('user_id'))
+
     if accion.asignado_id != session.get('user_id'):
         flash("No tienes permiso para acceder a esta acción.", "danger")
         return redirect(url_for('reportador.misAcciones'))
@@ -166,5 +169,6 @@ def detalleAccion(accion_id):
     return render_template(
         'shared_components/detalle_accion.html',
         accion=accion,
+        es_responsable=es_responsable, # Pasamos este flag al template
         back_url=url_for('reportador.misAcciones')
     )
