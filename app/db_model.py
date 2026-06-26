@@ -125,7 +125,7 @@ class Accion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     descripcion = db.Column(db.Text, nullable=False)
     resultado = db.Column(db.Text, nullable=True)
-    estado = db.Column(db.String(50), default='PENDIENTE', nullable=False)
+    estado = db.Column(db.String(50), default='PENDIENTE', nullable=False) # uno de PENDIENTE, COMPLETADA
     
     # Fechas independientes al caso
     fecha_emision = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)

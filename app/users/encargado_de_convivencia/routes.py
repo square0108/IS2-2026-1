@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, session, request, flash, redirect,
 from datetime import datetime, timezone
 from app.auth.login_required import login_required
 from app.db_model import db, Estudiante, Curso, Incidente, Caso, Antecedente, Observacion, Usuario, Accion
-from app.queries import ejecutar_consulta, buscar_incidentes
+from app.queries import ejecutar_consulta, buscar_incidentes, db_tryCompletarAccion
 
 encargado = Blueprint('encargado_de_convivencia', __name__)
 
@@ -520,20 +520,26 @@ def verIncidente(incidente_id):
     incidente = Antecedente.query.get_or_404(incidente_id)
     return render_template('encargado_de_convivencia/incidente_detalles.html', incidente=incidente)
 
-@encargado.route('/misAcciones')
+@encargado.route('/misAcciones', methods=["GET"])
 @login_required("encargado_de_convivencia")
 def misAcciones():
+    id_usuario_actual=session.get('user_id')
 
-    acciones = (
-        Accion.query
-        .filter_by(asignado_id=session.get('user_id'))
-        .order_by(Accion.fecha_emision.desc())
-        .all()
-    )
+    # Obtener acciones pendientes y completadas por separado para que frontend las separe en distintas tabs
+    acciones_pendientes = (Accion.query.filter_by(
+        asignado_id=id_usuario_actual,
+        estado='PENDIENTE'
+    )).order_by(Accion.fecha_emision.desc()).all()
+
+    acciones_completadas = (Accion.query.filter_by(
+        asignado_id=id_usuario_actual,
+        estado='COMPLETADA'
+    )).order_by(Accion.fecha_emision.desc()).all()
 
     return render_template(
         'shared_components/mis_acciones.html',
-        acciones=acciones,
+        acciones_pendientes=acciones_pendientes,
+        acciones_completadas=acciones_completadas,
         detalle_endpoint='encargado_de_convivencia.detalleAccion'
     )
 
@@ -548,24 +554,8 @@ def detalleAccion(accion_id):
         return redirect(url_for('encargado_de_convivencia.misAcciones'))
 
     if request.method == "POST":
-
-        accion.resultado = request.form.get('resultado')
-        accion.estado = "COMPLETADA"
-
-        try:
-            db.session.commit()
-            flash("Acción completada exitosamente.", "success")
-        except Exception as e:
-            db.session.rollback()
-            flash("Error al guardar la acción.", "danger")
-            print(e)
-
-        return redirect(
-            url_for(
-                'encargado_de_convivencia.detalleAccion',
-                accion_id=accion.id
-            )
-        )
+        db_tryCompletarAccion(db, accion)
+        return redirect(url_for('encargado_de_convivencia.detalleAccion', accion_id=accion.id))
 
     return render_template(
         'shared_components/detalle_accion.html',

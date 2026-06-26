@@ -15,6 +15,8 @@
             <p><strong>Descripción:</strong> {{ accion.descripcion }}</p>
             <p><strong>Estado:</strong> {{ accion.estado }}</p>
             <p><strong>Caso:</strong> {{ accion.caso.nombre }}</p>
+            <p><strong>Fecha y hora de emisión:</strong> {{ accion.fecha_emision | datetime_sin_miliseg }}</p>
+            <p><strong>Fecha y hora de completación:</strong> {{ accion.fecha_completacion | datetime_sin_miliseg }}</p>
 
             {% if accion.estado == "PENDIENTE" %}
             <form method="POST">
