@@ -11,7 +11,7 @@
 <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Incidentes reportados</h1>
-        <a href="{{ url_for('reportador.nuevoReporte') }}" class="btn btn-primary">Registrar Nuevo</a>
+        <a href="{{ url_for('reportador.nuevoReporte') }}" class="btn btn-primary">Reportar nuevo incidente</a>
     </div>
 
     {% if incidentes %}
@@ -25,7 +25,7 @@
                     </div>
                     
                     <div class="card-body">
-                        <h6 class="card-subtitle mb-2 text-muted fw-bold">Estudiantes Involucrados:</h6>
+                        <h6 class="card-subtitle mb-2 text-muted fw-bold">Estudiantes involucrados:</h6>
                         <!-- Ir a expediente -->
                         <ul class="mb-3">
                             {% for estudiante in incidente.estudiantes %}
@@ -43,7 +43,7 @@
                         <h6 class="card-subtitle mb-2 text-muted fw-bold">Descripción:</h6>
                         <p class="card-text">{{ incidente.descripcion }}</p>
                         
-                        <h6 class="card-subtitle mb-2 text-muted fw-bold">Respuesta Inmediata:</h6>
+                        <h6 class="card-subtitle mb-2 text-muted fw-bold">Respuesta inmediata:</h6>
                         <p class="card-text">{{ incidente.respuesta_inmediata }}</p>
                     </div>
                 </div>

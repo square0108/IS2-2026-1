@@ -105,27 +105,49 @@ def nuevoReporte():
 @encargado.route('/explorarIncidentes', methods=["GET"])
 @login_required("encargado_de_convivencia")
 def explorarIncidentes():
-    # Obtenemos el filtro por GET (si no existe, por defecto es 'todos')
-    filtro = request.args.get('filtro', 'todos')
-
-    # Obtener número de página desde parámetros GET (por defecto 1)
+    # Capturamos los filtros desde los parámetros GET de la URL
+    filtro = request.args.get('filtro', 'todos')  # todos / mios
+    tipo = request.args.get('tipo', 'todos')      # todos / incidente / observacion
     page = request.args.get('page', 1, type=int)
-
-    # Término de búsqueda por nombre de estudiante involucrado
     q = (request.args.get('q') or '').strip()
 
-    # Si el usuario quiere ver solo los suyos, filtramos por su id
-    creador_id = session.get('user_id') if filtro == 'mios' else None
+    # Apuntamos a Antecedente.query para traer tanto incidentes como observaciones
+    query = Antecedente.query
 
-    # La lógica de la consulta vive en queries.py (capa de abstracción)
-    query = buscar_incidentes(q=q, creador_id=creador_id)
+    # 1. Filtro de autoría (Todos los reportes del colegio vs Mis reportes)
+    if filtro == 'mios':
+        query = query.filter(Antecedente.creador_id == session.get('user_id'))
 
-    # Usar paginación: 10 incidentes por página
+    # 2. Nuevo filtro por tipo de registro (Identidad polimórfica)
+    if tipo == 'incidente':
+        query = query.filter(Antecedente.tipo_antecedente == 'INCIDENTE')
+    elif tipo == 'observacion':
+        query = query.filter(Antecedente.tipo_antecedente == 'OBSERVACION')
+
+    # 3. Buscador por nombre de estudiante involucrado
+    if q:
+        like_q = f"%{q}%"
+        query = (
+            query.join(Antecedente.estudiantes)
+            .filter(Estudiante.nombre_completo.ilike(like_q))
+            .distinct()
+        )
+
+    # Ordenamos cronológicamente: los registros más recientes primero
+    query = query.order_by(Antecedente.fecha_adicion.desc())
+
+    # Aplicamos paginación nativa de SQLAlchemy (10 registros por página)
     pagination = query.paginate(page=page, per_page=10, error_out=False)
-    incidentes = pagination.items
+    antecedentes = pagination.items
 
-    return render_template('encargado_de_convivencia/general_explorar_antecedentes.html', incidentes=incidentes, pagination=pagination, filtro=filtro, q=q)
-
+    return render_template(
+        'encargado_de_convivencia/general_explorar_antecedentes.html', 
+        antecedentes=antecedentes, 
+        pagination=pagination, 
+        filtro=filtro, 
+        tipo=tipo, 
+        q=q
+    )
 
 @encargado.route('/nuevoCaso', methods=["GET", "POST"])
 @login_required("encargado_de_convivencia")
