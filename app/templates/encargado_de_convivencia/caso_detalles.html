@@ -143,9 +143,17 @@
                     <textarea class="form-control" name="descripcion" rows="3" required placeholder="Ej: Entrevistar al estudiante para indagar motivos..."></textarea>
                 </div>
 
-                <div class="mb-3">
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="checkDerivar">
+                    <label class="form-check-label text-muted small fw-bold" for="checkDerivar">
+                        Derivar esta tarea a otro funcionario
+                    </label>
+                </div>
+
+                <div class="mb-3" id="wrapperResponsable" style="display: none;">
                     <label class="form-label text-muted">Funcionario responsable</label>
-                    <select class="form-select" name="asignado_id" required>
+                    <select class="form-select" id="selectAsignado" name="asignado_id">
+                        <option value="" selected disabled>Seleccione un funcionario...</option>
                         {% for usuario in responsables %}
                             <option value="{{ usuario.id }}">{{ usuario.nombre_completo }}</option>
                         {% endfor %}
@@ -264,4 +272,30 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Lógica interactiva para mostrar/ocultar el selector de funcionarios
+        const checkDerivar = document.getElementById('checkDerivar');
+        const wrapperResponsable = document.getElementById('wrapperResponsable');
+        const selectAsignado = document.getElementById('selectAsignado');
+
+        if (checkDerivar && wrapperResponsable && selectAsignado) {
+            checkDerivar.addEventListener('change', function() {
+                if (this.checked) {
+                    // Si quiere derivar, se muestra el campo y se vuelve obligatorio
+                    wrapperResponsable.style.display = 'block';
+                    selectAsignado.setAttribute('required', 'true');
+                } else {
+                    // Si es una tarea propia, se oculta y deja de ser obligatorio
+                    wrapperResponsable.style.display = 'none';
+                    selectAsignado.removeAttribute('required');
+                    selectAsignado.value = ""; // Limpiamos cualquier selección previa
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}
